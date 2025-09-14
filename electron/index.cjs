@@ -1,5 +1,6 @@
 const { app, BrowserWindow, screen, ipcMain } = require('electron/main')
 const path = require('path')
+const { getAllData, getDataById, addData, updateData, deleteData } = require('./hooks.cjs');
 
 const createWindow = () => {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -11,25 +12,40 @@ const createWindow = () => {
     title: 'Список Взводов',
     icon: path.join(__dirname, '../dist/ВУЦ.png'),
     webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
       preload: path.join(__dirname, 'preload.cjs')
     }
   })
 
+  win.webContents.openDevTools()
   win.maximize();
   win.loadFile(path.join(__dirname, '../dist/index.html'));
 }
 
-app.whenReady().then(async() => {
-  const { getPlatoons, createPlatoon } = require('../src/hooks/usePlatoon');
+// IPC обработчики
+ipcMain.handle('get-all-data', async () => {
+  return getAllData();
+});
 
-  ipcMain.handle('get-platoons', () => {
-    return getPlatoons();
-  });
+ipcMain.handle('get-data-by-id', async (event, id) => {
+  return getDataById(id);
+});
 
-  ipcMain.handle('create-platoon', (platoonData) => {
-    return createPlatoon(platoonData);
-  });
+ipcMain.handle('add-data', async (event, data) => {
+  return addData(data);
+});
 
+ipcMain.handle('update-data', async (event, id, data) => {
+  return updateData(id, data);
+});
+
+ipcMain.handle('delete-data', async (event, id) => {
+  return deleteData(id);
+});
+
+
+app.whenReady().then(() => {
   createWindow()
 
   app.on('activate', () => {

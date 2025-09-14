@@ -1,12 +1,10 @@
-import { useState, useId } from "react";
+import { useState } from "react";
 import { Button, Group, Input, Modal, Select, Stack } from "@mantine/core";
-//import { store } from "../models/PlatoonSchema";
 
 export default function PlatoonCreateModal({
     opened,
     close,
 }) {
-    const platoonId = useId();
     const [typePlatoon, setTypePlatoon] = useState(null);
     const [numberPlatoon, setNumberPlatoon] = useState(null);
 
@@ -18,20 +16,13 @@ export default function PlatoonCreateModal({
 
     const addPlatoon = async () => {
         const platoonObject = {
-            id: platoonId,
+            id: Date.now().toString(),
             type: typePlatoon,
             number: numberPlatoon,
         }
+        const { data, error } = await window.electronAPI.addData(platoonObject);
+        console.log(data);
 
-        try {
-            if (!window.platoonAPI) {
-                throw new Error('Platoon API не доступен');
-            }
-            await window.platoonAPI.createPlatoon(platoonObject);
-            onCloseModal();
-        } catch (error) {
-            console.error('Ошибка создания взвода:', error);
-        }
     }
 
     return (

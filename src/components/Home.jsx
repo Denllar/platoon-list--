@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { AppShell, Box, Group } from "@mantine/core";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import PlatoonList from "./PlatoonList";
@@ -18,6 +18,14 @@ export default function Home() {
             localStorage.setItem(`panel-size:${name}`, value);
         },
     }), []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const { data } = await window.electronAPI.getAllData();
+            console.log(data);
+        }
+        fetchData();
+    }, [])
 
     return (
         <Box style={{ height: "100vh", }}>

@@ -15,7 +15,6 @@
   "dependencies": {
     "@mantine/core": "^8.2.8",
     "@mantine/hooks": "^8.2.8",
-    "electron-store": "^10.1.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-resizable-panels": "^3.0.5",
