@@ -19,14 +19,6 @@ export default function Home() {
         },
     }), []);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const { data } = await window.electronAPI.getAllData();
-            console.log(data);
-        }
-        fetchData();
-    }, [])
-
     return (
         <Box style={{ height: "100vh", }}>
             <PanelGroup direction="horizontal" storage={localStorageAdapter} id="main-panels">

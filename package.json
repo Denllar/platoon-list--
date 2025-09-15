@@ -5,8 +5,8 @@
   "type": "module",
   "main": "electron/index.cjs",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && nodemon --watch electron --ext cjs --exec electron .\"",
+    "build": "vite build && electron-builder",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "electron .",
@@ -25,14 +25,17 @@
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.1",
     "electron": "^38.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "nodemon": "^3.1.10",
     "postcss": "^8.5.6",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
-    "vite": "^7.1.2"
+    "vite": "^7.1.2",
+    "wait-on": "^8.0.5"
   }
 }

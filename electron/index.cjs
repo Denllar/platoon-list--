@@ -20,7 +20,9 @@ const createWindow = () => {
 
   win.webContents.openDevTools()
   win.maximize();
-  win.loadFile(path.join(__dirname, '../dist/index.html'));
+
+  win.loadURL('http://localhost:5173');
+  //win.loadFile(path.join(__dirname, '../dist/index.html'));
 }
 
 // IPC обработчики

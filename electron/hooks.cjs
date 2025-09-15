@@ -15,8 +15,9 @@ function initializeFile() {
 function getAllData() {
     try {
         initializeFile();
-        const data = fs.readFileSync(dataFilePath, 'utf8');
-        return JSON.parse(data);
+        const content = fs.readFileSync(dataFilePath, 'utf8');
+        const data = JSON.parse(content);
+        return data;
     } catch (error) {
         console.error('Ошибка при чтении файла:', error);
         return [];
