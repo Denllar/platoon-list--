@@ -1,6 +1,10 @@
 const { app, BrowserWindow, screen, ipcMain } = require('electron/main')
 const path = require('path')
-const { getAllData, getDataById, addData, updateData, deleteData } = require('./hooks.cjs');
+const { getAllPlatoons,
+  getPlatoonById,
+  addPlatoon,
+  updatePlatoon,
+  deletePlatoon } = require('./hooks.cjs');
 
 const createWindow = () => {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -27,23 +31,23 @@ const createWindow = () => {
 
 // IPC обработчики
 ipcMain.handle('get-all-data', async () => {
-  return getAllData();
+  return getAllPlatoons();
 });
 
 ipcMain.handle('get-data-by-id', async (event, id) => {
-  return getDataById(id);
+  return getPlatoonById(id);
 });
 
 ipcMain.handle('add-data', async (event, data) => {
-  return addData(data);
+  return addPlatoon(data);
 });
 
 ipcMain.handle('update-data', async (event, id, data) => {
-  return updateData(id, data);
+  return updatePlatoon(id, data);
 });
 
 ipcMain.handle('delete-data', async (event, id) => {
-  return deleteData(id);
+  return deletePlatoon(id);
 });
 
 

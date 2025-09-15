@@ -12,12 +12,12 @@ function initializeFile() {
 }
 
 // Получение всех данных
-function getAllData() {
+function getAllPlatoons() {
     try {
         initializeFile();
         const content = fs.readFileSync(dataFilePath, 'utf8');
         const data = JSON.parse(content);
-        return data;
+        return { data };
     } catch (error) {
         console.error('Ошибка при чтении файла:', error);
         return [];
@@ -25,57 +25,58 @@ function getAllData() {
 }
 
 // Получение данных по ID
-function getDataById(id) {
+function getPlatoonById(id) {
     try {
-        const allData = getAllData();
-        return allData.find(item => item.id === id) || null;
+        const { data } = getAllPlatoons();
+        const platoon = data.find(item => item.id === id);
+        return { data: platoon }
     } catch (error) {
         console.error('Ошибка при поиске данных:', error);
-        return null;
+        return { error: `Ошибка при поиске взвода: ${error}` };
     }
 }
 
 // Добавление новых данных
-function addData(newItem) {
+function addPlatoon(newItem) {
     try {
-        const allData = getAllData();
-        
-        const isAlready = allData.some(item => item.number === newItem.number)
-        if (isAlready) return {error: "Взвод уже существует!"}
+        const { data } = getAllPlatoons();
 
-        allData.push(newItem);
-        fs.writeFileSync(dataFilePath, JSON.stringify(allData, null, 2));
-        return {data: newItem};
+        const isAlready = data.some(item => item.number === newItem.number)
+        if (isAlready) return { error: "Взвод уже существует!" }
+
+        data.push(newItem);
+        fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2));
+        return { data: newItem };
     } catch (error) {
         console.error('Ошибка при добавлении данных:', error);
         return null;
     }
 }
 
-// Обновление данных по ID
-function updateData(id, updatedData) {
+function updatePlatoon(id, updatedData) {
     try {
-        const allData = getAllData();
-        const index = allData.findIndex(item => item.id === id);
-        
+        const { data } = getAllPlatoons();
+        const index = data.findIndex(item => item.id === id);
+
         if (index !== -1) {
-            allData[index] = { ...allData[index], ...updatedData, id: id };
-            fs.writeFileSync(dataFilePath, JSON.stringify(allData, null, 2));
-            return allData[index];
+            // Создаём копию массива, чтобы не мутировать оригинальные данные
+            const newData = [...data];
+            newData[index] = { ...newData[index], ...updatedData, id };
+            fs.writeFileSync(dataFilePath, JSON.stringify(newData, null, 2));
+            return {data: newData[index]};
         }
-        return null;
     } catch (error) {
         console.error('Ошибка при обновлении данных:', error);
-        return null;
+        return { error: `Ошибка при обновлении данных: ${error}` };
     }
 }
 
 // Удаление данных по ID
-function deleteData(id) {
+function deletePlatoon(id) {
     try {
         const allData = getAllData();
         const filteredData = allData.filter(item => item.id !== id);
-        
+
         fs.writeFileSync(dataFilePath, JSON.stringify(filteredData, null, 2));
         return true;
     } catch (error) {
@@ -85,9 +86,9 @@ function deleteData(id) {
 }
 
 module.exports = {
-    getAllData,
-    getDataById,
-    addData,
-    updateData,
-    deleteData
+    getAllPlatoons,
+    getPlatoonById,
+    addPlatoon,
+    updatePlatoon,
+    deletePlatoon
 };

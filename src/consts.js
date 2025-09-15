@@ -1,2 +1,2 @@
 export const PLATOONS = 'platoons';
-export const TYPE_PLATOONS = ['Кадровые', 'Офицеры', 'Солдаты'];
+export const TYPE_PLATOONS = ['Кадровые офицеры', 'Офицеры запаса', 'Солдаты запаса'];

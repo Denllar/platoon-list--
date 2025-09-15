@@ -1,8 +1,8 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
+import { Outlet } from "react-router-dom";
 import { AppShell, Box, Group } from "@mantine/core";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import PlatoonList from "./PlatoonList";
-import PlatoonTable from "./PlatoonTable";
+import PlatoonList from "../components/PlatoonList";
 
 export default function Home() {
     const localStorageAdapter = useMemo(() => ({
@@ -22,12 +22,18 @@ export default function Home() {
     return (
         <Box style={{ height: "100vh", }}>
             <PanelGroup direction="horizontal" storage={localStorageAdapter} id="main-panels">
-                <Panel minSize={20} maxSize={30} defaultSize={25} order={1}>
+                <Panel
+                    style={{ height: "100%" }}
+                    minSize={20}
+                    maxSize={30}
+                    defaultSize={25}
+                    order={1}
+                >
                     <PlatoonList />
                 </Panel>
                 <PanelResizeHandle style={{ width: 3, background: 'var(--mantine-color-blue-3)', cursor: 'col-resize' }} />
                 <Panel minSize={20} defaultSize={70} order={2}>
-                    <PlatoonTable />
+                    <Outlet />
                 </Panel>
             </PanelGroup>
         </Box>

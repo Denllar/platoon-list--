@@ -1,22 +1,29 @@
-import { useState } from "react";
-import { Dialog, Button, Group, Input, Modal, Select, Stack, Text } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { Dialog, Button, Group, Input, Modal, Select, Stack, Text, CloseButton } from "@mantine/core";
 import { TYPE_PLATOONS } from "../consts";
 import { useDisclosure } from "@mantine/hooks";
 import useAddPlatoon from "../hooks/useAddPlatoon";
+import useUpdatePlatoon from "../hooks/useUpdatePlatoon";
 
 export default function PlatoonCreateModal({
     opened,
     close,
+    editPlatoon,
+    setEditPlatoon,
 }) {
     const [openedDialog, { toggle: openDialog, close: closeDialog }] = useDisclosure(false);
-    const [typePlatoon, setTypePlatoon] = useState(null);
-    const [numberPlatoon, setNumberPlatoon] = useState(null);
-    
-    const { addPlatoon: createPlatoon, } = useAddPlatoon();
+    const [typePlatoon, setTypePlatoon] = useState(editPlatoon.type || "");
+    const [numberPlatoon, setNumberPlatoon] = useState(editPlatoon.number || "");
+    const disabledButtonAdd = !typePlatoon || !numberPlatoon;
+    const editButtonDisabled = disabledButtonAdd || (typePlatoon === editPlatoon.type && numberPlatoon === editPlatoon.number);
+
+    const { createPlatoon } = useAddPlatoon();
+    const { updatePlatoon } = useUpdatePlatoon();
 
     const onCloseModal = () => {
         setTypePlatoon(null);
         setNumberPlatoon(null);
+        setEditPlatoon({});
         close();
     }
 
@@ -32,19 +39,33 @@ export default function PlatoonCreateModal({
             return;
         }
         onCloseModal();
+        window.location.reload();
     }
-    
+
+    const handleEditPlatoon =() => {
+        updatePlatoon(editPlatoon.id, {type: typePlatoon, number: numberPlatoon});
+
+        onCloseModal();
+        window.location.reload();
+    }
+
+    useEffect(() => {
+        setTypePlatoon(editPlatoon?.type || "");
+        setNumberPlatoon(editPlatoon?.number || "");
+    }, [editPlatoon]);
+
     return (
         <>
             <Modal
                 opened={opened}
                 onClose={onCloseModal}
-                title={'Добавить взвод'}
+                size={'40%'}
+                title={`${editPlatoon?.id ? "Изменить" : "Добавить"} взвод`}
                 centered
                 closeOnClickOutside={false}
             >
                 <Stack>
-                    <Group>
+                    <Group justify="space-between">
                         <Select
                             placeholder="Тип взвода"
                             data={TYPE_PLATOONS}
@@ -56,14 +77,31 @@ export default function PlatoonCreateModal({
                             placeholder="Номер взвода"
                             value={numberPlatoon}
                             onChange={(e) => setNumberPlatoon(e.target.value)}
+                            rightSectionPointerEvents="all"
+                            rightSection={
+                                <CloseButton
+                                    onClick={() => setNumberPlatoon("")}
+                                    style={{ display: numberPlatoon ? undefined : 'none' }}
+                                />
+                            }
                         />
                     </Group>
-                    <Button
-                        onClick={addPlatoon}
-                        disabled={!typePlatoon || !numberPlatoon}
-                    >
-                        Добавить
-                    </Button>
+
+                    {
+                        editPlatoon?.id ?
+                            <Button
+                                onClick={handleEditPlatoon}
+                                disabled={editButtonDisabled}
+                            >
+                                Изменить
+                            </Button> :
+                            <Button
+                                onClick={addPlatoon}
+                                disabled={disabledButtonAdd}
+                            >
+                                Добавить
+                            </Button>
+                    }
                 </Stack>
             </Modal>
 

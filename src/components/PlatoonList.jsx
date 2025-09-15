@@ -1,55 +1,108 @@
 import { useEffect, useState } from "react";
-import { Menu, Button, Group, ScrollArea, Stack, Text } from "@mantine/core";
-import PlatoonAddModal from "./PlatoonCreateModal";
+import { Menu, Button, Group, ScrollArea, Stack, Text, CloseButton, Input } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { useNavigate, useParams } from "react-router-dom";
+import { MdModeEdit } from "react-icons/md";
+import PlatoonAddModal from "./PlatoonCreateModal";
 import { TYPE_PLATOONS } from "../consts";
+import useGetPlatoons from "../hooks/useGetPlatoons";
 
 export default function PlatoonList() {
-    const [platoons, setPlatoons] = useState([]);
+    const { id } = useParams();
+    const navigate = useNavigate();
+
+    const [value, setValue] = useState('');
+    const [editPlatoon, setEditPlatoon] = useState({});
+
     const [opened, { open, close }] = useDisclosure(false);
 
+    const { getPlatoons, platoons } = useGetPlatoons();
+
     useEffect(() => {
-        const fetchData = async () => {
-            const data = await window.electronAPI.getAllData();
-            setPlatoons(data);
-        }
-        fetchData();
+        getPlatoons();
     }, [])
 
     return (
         <Stack align="center" p={'xs'}>
-            <ScrollArea>
-                <Group mb={'xl'}>
+            <Stack gap={0}>
+                <Group
+                    justify="center"
+                >
                     <Text fw={700}>Список взводов</Text>
                     <Button variant="outline" px={'xs'} py={0} onClick={open}>
                         +
                     </Button>
-                    <PlatoonAddModal
-                        opened={opened}
-                        close={close}
-                    />
                 </Group>
 
-                <Stack>
+                <Input
+                    mb={'xl'}
+                    placeholder="Поиск..."
+                    value={value}
+                    onChange={(event) => setValue(event.currentTarget.value)}
+                    rightSectionPointerEvents="all"
+                    mt="md"
+                    rightSection={
+                        <CloseButton
+                            onClick={() => setValue('')}
+                            style={{ display: value ? undefined : 'none' }}
+                        />
+                    }
+                />
+
+                <ScrollArea.Autosize
+                    mah="calc(100vh - 150px)"
+                    type={"never"}
+                >
                     {TYPE_PLATOONS.map((type) => {
-                        const platoonsOfType = platoons.filter((platoon) => platoon.type === type);
+                        const platoonsOfType = platoons
+                            .filter((platoon) => platoon.type === type)
+                            .filter((platoon) => platoon.number.toString().includes(value));
                         if (platoonsOfType.length === 0) return null;
                         return (
-                            <Stack align="center" key={type}>
+                            <Stack align="center" key={type} mb={'xl'}>
                                 <Text>{type}</Text>
                                 {platoonsOfType.map((platoon) => (
-                                    <Button
-                                        key={platoon.id}
-                                        w={'100%'}
-                                    >
-                                        {platoon.number}
-                                    </Button>
+                                    <Group w={'100%'}>
+                                        <Button
+                                            key={platoon.id}
+                                            flex={1}
+                                            onClick={() => navigate(`${platoon.id}`)}
+                                            disabled={platoon.id === id}
+
+                                        >
+                                            {platoon.number}
+                                        </Button>
+                                        {
+                                            id === platoon.id &&
+                                            <Button
+                                                onClick={() => {
+                                                    setEditPlatoon(platoon);
+                                                    open();
+                                                }}
+                                            >
+                                                <MdModeEdit />
+                                            </Button>
+                                        }
+                                    </Group>
                                 ))}
                             </Stack>
                         );
                     })}
-                </Stack>
-            </ScrollArea>
-        </Stack>
+
+                    {TYPE_PLATOONS.every(type => platoons
+                        .filter((platoon) => platoon.type === type)
+                        .filter((platoon) => platoon.number.toString().includes(value)).length === 0) && (
+                            <Text align="center" c="dimmed" mt="md">Взводы не найдены</Text>
+                        )}
+                </ScrollArea.Autosize>
+            </Stack>
+
+            <PlatoonAddModal
+                opened={opened}
+                close={close}
+                editPlatoon={editPlatoon}
+                setEditPlatoon={setEditPlatoon}
+            />
+        </Stack >
     );
 }
