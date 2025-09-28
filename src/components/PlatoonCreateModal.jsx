@@ -4,6 +4,7 @@ import { TYPE_PLATOONS } from "../consts";
 import { useDisclosure } from "@mantine/hooks";
 import useAddPlatoon from "../hooks/useAddPlatoon";
 import useUpdatePlatoon from "../hooks/useUpdatePlatoon";
+import { useNavigate } from "react-router-dom";
 
 export default function PlatoonCreateModal({
     opened,
@@ -11,6 +12,8 @@ export default function PlatoonCreateModal({
     editPlatoon,
     setEditPlatoon,
 }) {
+    const navigate = useNavigate();
+
     const [openedDialog, { toggle: openDialog, close: closeDialog }] = useDisclosure(false);
     const [typePlatoon, setTypePlatoon] = useState(editPlatoon.type || "");
     const [numberPlatoon, setNumberPlatoon] = useState(editPlatoon.number || "");
@@ -39,6 +42,7 @@ export default function PlatoonCreateModal({
             return;
         }
         onCloseModal();
+        navigate(`/${platoonObject.id}`)
         window.location.reload();
     }
 

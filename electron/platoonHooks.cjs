@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Путь к JSON файлу
-const dataFilePath = path.join(__dirname, '../platoon.json');
+const dataFilePath = path.join(__dirname, '../db/platoon.json');
 
 // Инициализация файла если он не существует
 function initializeFile() {

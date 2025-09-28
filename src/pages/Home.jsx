@@ -31,9 +31,9 @@ export default function Home() {
                 >
                     <PlatoonList />
                 </Panel>
-                <PanelResizeHandle style={{ width: 3, background: 'var(--mantine-color-blue-3)', cursor: 'col-resize' }} />
+                <PanelResizeHandle disabled style={{ width: 3, background: 'var(--mantine-color-blue-3)', cursor: 'col-resize' }} />
                 <Panel minSize={20} defaultSize={70} order={2}>
-                    <Outlet />
+                    <Outlet/>
                 </Panel>
             </PanelGroup>
         </Box>

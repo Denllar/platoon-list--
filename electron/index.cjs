@@ -1,10 +1,18 @@
 const { app, BrowserWindow, screen, ipcMain } = require('electron/main')
 const path = require('path')
-const { getAllPlatoons,
+const { 
+  getAllPlatoons,
   getPlatoonById,
   addPlatoon,
   updatePlatoon,
-  deletePlatoon } = require('./hooks.cjs');
+  deletePlatoon } = require('./platoonHooks.cjs');
+
+  const { 
+    getAllStudents,
+    getStudentById,
+    addStudent,
+    updateStudent,
+    deleteStudent } = require('./studentHooks.cjs');
 
 const createWindow = () => {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -30,26 +38,48 @@ const createWindow = () => {
 }
 
 // IPC обработчики
-ipcMain.handle('get-all-data', async () => {
+
+// Взвод
+ipcMain.handle('get-all-platoon', async () => {
   return getAllPlatoons();
 });
 
-ipcMain.handle('get-data-by-id', async (event, id) => {
+ipcMain.handle('get-platoon-by-id', async (event, id) => {
   return getPlatoonById(id);
 });
 
-ipcMain.handle('add-data', async (event, data) => {
+ipcMain.handle('add-platoon', async (event, data) => {
   return addPlatoon(data);
 });
 
-ipcMain.handle('update-data', async (event, id, data) => {
+ipcMain.handle('update-platoon', async (event, id, data) => {
   return updatePlatoon(id, data);
 });
 
-ipcMain.handle('delete-data', async (event, id) => {
+ipcMain.handle('delete-platoon', async (event, id) => {
   return deletePlatoon(id);
 });
 
+// Студент
+ipcMain.handle('get-all-students', async (event, platoonId) => {
+  return getAllStudents(platoonId);
+});
+
+ipcMain.handle('get-student-by-id', async (event, id) => {
+  return getStudentById(id);
+});
+
+ipcMain.handle('add-student', async (event, student) => {
+  return addStudent(student);
+});
+
+ipcMain.handle('update-student', async (event, id, student) => {
+  return updateStudent(id, student);
+});
+
+ipcMain.handle('delete-student', async (event, id) => {
+  return deleteStudent(id);
+});
 
 app.whenReady().then(() => {
   createWindow()
