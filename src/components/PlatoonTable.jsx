@@ -9,6 +9,22 @@ import StudentCreateModal from "./StudentCreateModal";
 
 const columns = [
     {
+        field: 'order',
+        headerName: '№',
+        width: 60,
+        headerAlign: 'center',
+        align: 'center',
+        resizable: false,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => {
+            // Получаем все ID строк в текущем порядке
+            const allRowIds = params.api.getAllRowIds();
+            // Находим индекс текущей строки и добавляем 1 (так как индексация с 0)
+            return allRowIds.indexOf(params.id) + 1;
+        }
+    },
+    {
         field: 'fio',
         headerName: 'ФИО',
         headerAlign: 'center',
@@ -73,8 +89,8 @@ export default function PlatoonTable() {
         <Stack p={'xs'} style={{ flex: '1', height: '100%' }} bg={'blue'}>
             <Group gap={'xl'}>
                 <Stack c={'white'} gap={0}>
-                    <Text>{data?.type}</Text>
-                    <Text>Взвод {data?.number}</Text>
+                    <Text fw={700}>{data?.type}</Text>
+                    <Text fw={700}>Взвод {data?.number}</Text>
                 </Stack>
 
                 <Input
@@ -99,6 +115,8 @@ export default function PlatoonTable() {
                 </Button>
             </Group>
 
+            {search && <Text c={'white'} fw={700} size="xl">Поиск по {search}</Text>}
+
             <ScrollArea.Autosize>
                 <DataGrid
                     rows={filteredStudents}
@@ -110,6 +128,7 @@ export default function PlatoonTable() {
                     sortModel={sortModel}
                     onSortModelChange={setSortModel}
                     sortingOrder={['asc', 'desc']}
+                    getRowId={(row) => row.id}
                 />
             </ScrollArea.Autosize>
 
