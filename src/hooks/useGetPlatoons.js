@@ -1,7 +1,4 @@
-import { useState } from "react";
-
-export default function useGetPlatoons() {
-    const [platoons, setPlatoons] = useState([]);
+export default function useGetPlatoons({setPlatoons}) {
 
     const getPlatoons = async () => {
         const {data} = await window.electronAPI.getAllPlatoons();
@@ -10,6 +7,5 @@ export default function useGetPlatoons() {
 
     return {
         getPlatoons,
-        platoons,
     }
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-export default function useGetStudents() {
-    const [students, setStudents] = useState([]);
+export default function useGetStudents({setStudents}) {
+    //const [students, setStudents] = useState([]);
     const [error, setError] = useState(null);
 
     const getStudents = async (platoonId) => {
@@ -16,7 +16,6 @@ export default function useGetStudents() {
 
     return {
         getStudents,
-        students,
         error,
     };
 }

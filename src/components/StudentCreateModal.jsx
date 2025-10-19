@@ -1,28 +1,31 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Button, CloseButton, Group, Input, Modal, Select, Stack } from "@mantine/core";
 import { STATUS_STUDENT, STATUS_STUDENT_KURSANT } from "../consts";
 import useAddStudent from "../hooks/useAddStudent";
+import useUpdateStudent from "../hooks/useUpdateStudent";
 
 export default function StudentCreateModal({
     opened,
     close,
     platoonId,
-    editPlatoon,
-    //setEditPlatoon,
+    setStudents,
+    editStudent,
+    setEditStudent,
 }) {
-
-    const [fio, setFio] = useState('');
-    const [fieldOfStudy, setFieldOfStudy] = useState('');
-    const [status, setStatus] = useState(STATUS_STUDENT[0]);
+    const [fio, setFio] = useState(editStudent?.fio || '');
+    const [fieldOfStudy, setFieldOfStudy] = useState(editStudent?.fieldOfStudy || '');
+    const [status, setStatus] = useState(editStudent?.status || STATUS_STUDENT[0]);
 
     const { addStudent } = useAddStudent();
+    const { updateStudent } = useUpdateStudent();
 
     const disabledButtonAdd = !fio || !fieldOfStudy || !status;
+    const editButtonDisabled = disabledButtonAdd || (fio === editStudent.fio && fieldOfStudy === editStudent.fieldOfStudy && status === editStudent.status);
 
     const onCloseModal = () => {
         setFio('');
         setFieldOfStudy('');
-        setStatus('');
+        setEditStudent({})
         close();
     }
 
@@ -34,10 +37,22 @@ export default function StudentCreateModal({
             fieldOfStudy,
             status,
         }
-        await addStudent(studentObject);
+        const { data } = await addStudent(studentObject);
+        setStudents(prev => [...prev, data])
         onCloseModal();
-        window.location.reload();
     }
+
+    const handleEditStudent = async () => {
+        const { data } = await updateStudent(editStudent.id, { fio, fieldOfStudy, status });
+        setStudents(prevStudents => prevStudents.map(student => student.id === editStudent.id ? { ...student, ...data } : student))
+        onCloseModal();
+    }
+
+    useEffect(() => {
+        setFio(editStudent?.fio || "");
+        setFieldOfStudy(editStudent?.fieldOfStudy || "");
+        setStatus(editStudent?.status || STATUS_STUDENT[0]);
+    }, [editStudent]);
 
     return (
         <>
@@ -45,7 +60,7 @@ export default function StudentCreateModal({
                 opened={opened}
                 onClose={onCloseModal}
                 size={'40%'}
-                title={`${editPlatoon?.id ? "Изменить" : "Добавить"} студента`}
+                title={`${editStudent?.id ? "Изменить" : "Добавить"} студента`}
                 centered
                 closeOnClickOutside={false}
             >
@@ -86,27 +101,21 @@ export default function StudentCreateModal({
                         />
                     </Group>
 
-                    {/* {
-                        editPlatoon?.id ?
+                    {
+                        editStudent?.id ?
                             <Button
-                                onClick={handleEditPlatoon}
+                                onClick={handleEditStudent}
                                 disabled={editButtonDisabled}
                             >
                                 Изменить
                             </Button> :
                             <Button
-                                onClick={addPlatoon}
+                                onClick={handleAddStudent}
                                 disabled={disabledButtonAdd}
                             >
                                 Добавить
                             </Button>
-                    } */}
-                    <Button
-                        onClick={handleAddStudent}
-                        disabled={disabledButtonAdd}
-                    >
-                        Добавить
-                    </Button>
+                    }
                 </Stack>
             </Modal>
         </>

@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 export default function PlatoonCreateModal({
     opened,
     close,
+    setPlatoons,
     editPlatoon,
     setEditPlatoon,
 }) {
@@ -36,21 +37,21 @@ export default function PlatoonCreateModal({
             type: typePlatoon,
             number: numberPlatoon,
         }
-        const { error: addError } = await createPlatoon(platoonObject);
+        const { data, error: addError } = await createPlatoon(platoonObject);
         if (addError) {
             openDialog();
             return;
         }
+        setPlatoons(prev => [...prev, data]);
         onCloseModal();
         navigate(`/${platoonObject.id}`)
-        window.location.reload();
     }
 
-    const handleEditPlatoon =() => {
-        updatePlatoon(editPlatoon.id, {type: typePlatoon, number: numberPlatoon});
-
+    const handleEditPlatoon = async () => {
+        const { data } = await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon });
+        setPlatoons(prevPlatoons => prevPlatoons.map(platoon => platoon.id === editPlatoon.id ? { ...platoon, ...data } : platoon))
         onCloseModal();
-        window.location.reload();
+        window.location.reload()
     }
 
     useEffect(() => {

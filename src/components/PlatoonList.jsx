@@ -11,12 +11,13 @@ export default function PlatoonList() {
     const { id } = useParams();
     const navigate = useNavigate();
 
+    const [platoons, setPlatoons] = useState([]);
     const [value, setValue] = useState('');
     const [editPlatoon, setEditPlatoon] = useState({});
 
     const [opened, { open, close }] = useDisclosure(false);
 
-    const { getPlatoons, platoons } = useGetPlatoons();
+    const { getPlatoons } = useGetPlatoons({ setPlatoons });
 
     useEffect(() => {
         getPlatoons();
@@ -100,6 +101,7 @@ export default function PlatoonList() {
             <PlatoonAddModal
                 opened={opened}
                 close={close}
+                setPlatoons={setPlatoons}
                 editPlatoon={editPlatoon}
                 setEditPlatoon={setEditPlatoon}
             />

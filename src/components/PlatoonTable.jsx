@@ -5,7 +5,7 @@ import useGetStudents from "../hooks/useGetStudents"
 import { DataGrid } from "@mui/x-data-grid";
 import { useDisclosure } from "@mantine/hooks";
 import StudentCreateModal from "./StudentCreateModal";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const columns = [
     {
@@ -38,15 +38,25 @@ const columns = [
 
 export default function PlatoonTable() {
     const { id: platoonId } = useParams();
+
+    const [students, setStudents] = useState([]);
+    const [editStudent, setEditStudent] = useState({});
+
     const { data } = useGetPlatoonById(platoonId);
 
-    const { getStudents, students, error, } = useGetStudents();
+    const { getStudents, error, } = useGetStudents({setStudents});
+    //getStudents(platoonId);
 
     const [opened, { open, close }] = useDisclosure(false);
 
+    const onEditStudent = (e) => {
+        setEditStudent(e.row);
+        open();
+    }
+
     useEffect(() => {
         getStudents(platoonId);
-    }, [platoonId])
+    }, [platoonId]) //getStudents нельзя!!!
     
     return (
         <Stack p={'xs'} style={{ flex: '1', height: '100%' }} bg={'blue'}>
@@ -70,6 +80,7 @@ export default function PlatoonTable() {
                     columns={columns}
                     disableColumnMenu
                     hideFooter
+                    onRowClick={onEditStudent}
                     sx={{ border: 0 }}
                 />
             </ScrollArea.Autosize>
@@ -78,6 +89,9 @@ export default function PlatoonTable() {
                 opened={opened}
                 close={close}
                 platoonId={platoonId}
+                setStudents={setStudents}
+                editStudent={editStudent}
+                setEditStudent={setEditStudent}
             />
         </Stack>
     );

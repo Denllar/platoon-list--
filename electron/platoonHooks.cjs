@@ -64,6 +64,8 @@ function updatePlatoon(id, updatedData) {
             newData[index] = { ...newData[index], ...updatedData, id };
             fs.writeFileSync(dataFilePath, JSON.stringify(newData, null, 2));
             return {data: newData[index]};
+        } else {
+            return { error: 'Взвод не найден' };
         }
     } catch (error) {
         console.error('Ошибка при обновлении данных:', error);
