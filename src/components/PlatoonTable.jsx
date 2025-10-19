@@ -1,11 +1,11 @@
-import { Button, Group, ScrollArea, Stack, Text } from "@mantine/core";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
+import { Button, CloseButton, Group, Input, ScrollArea, Stack, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { DataGrid } from "@mui/x-data-grid";
 import useGetPlatoonById from "../hooks/useGetPlatoonById"
 import useGetStudents from "../hooks/useGetStudents"
-import { DataGrid } from "@mui/x-data-grid";
-import { useDisclosure } from "@mantine/hooks";
 import StudentCreateModal from "./StudentCreateModal";
-import { useEffect, useState } from "react";
 
 const columns = [
     {
@@ -41,13 +41,23 @@ export default function PlatoonTable() {
 
     const [students, setStudents] = useState([]);
     const [editStudent, setEditStudent] = useState({});
-
-    const { data } = useGetPlatoonById(platoonId);
-
-    const { getStudents, error, } = useGetStudents({setStudents});
-    //getStudents(platoonId);
+    const [search, setSearch] = useState('');
+    const [sortModel, setSortModel] = useState([{ field: 'fio', sort: 'asc' }]);
 
     const [opened, { open, close }] = useDisclosure(false);
+
+    const { data } = useGetPlatoonById(platoonId);
+    const { getStudents, error, } = useGetStudents({ setStudents });
+
+    const filteredStudents = useMemo(() => {
+        if (!search.trim()) return students;
+        const lowerSearch = search.trim().toLowerCase();
+        return students.filter(student =>
+            student.fio?.toLowerCase().includes(lowerSearch) ||
+            student.fieldOfStudy?.toLowerCase().includes(lowerSearch) ||
+            student.status?.toLowerCase().includes(lowerSearch)
+        );
+    }, [students, search]);
 
     const onEditStudent = (e) => {
         setEditStudent(e.row);
@@ -56,15 +66,30 @@ export default function PlatoonTable() {
 
     useEffect(() => {
         getStudents(platoonId);
+        setSortModel([{ field: 'fio', sort: 'asc' }]);
     }, [platoonId]) //getStudents нельзя!!!
-    
+
     return (
         <Stack p={'xs'} style={{ flex: '1', height: '100%' }} bg={'blue'}>
-            <Group justify="space-between">
+            <Group gap={'xl'}>
                 <Stack c={'white'} gap={0}>
                     <Text>{data?.type}</Text>
                     <Text>Взвод {data?.number}</Text>
                 </Stack>
+
+                <Input
+                    placeholder="Поиск..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    rightSectionPointerEvents="all"
+                    style={{ flex: 1 }}
+                    rightSection={
+                        <CloseButton
+                            onClick={() => setSearch("")}
+                            style={{ display: search ? undefined : 'none' }}
+                        />
+                    }
+                />
 
                 <Button
                     variant="white"
@@ -76,12 +101,15 @@ export default function PlatoonTable() {
 
             <ScrollArea.Autosize>
                 <DataGrid
-                    rows={students}
+                    rows={filteredStudents}
                     columns={columns}
                     disableColumnMenu
                     hideFooter
                     onRowClick={onEditStudent}
                     sx={{ border: 0 }}
+                    sortModel={sortModel}
+                    onSortModelChange={setSortModel}
+                    sortingOrder={['asc', 'desc']}
                 />
             </ScrollArea.Autosize>
 
