@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 // Путь к JSON файлу
-const studentsFilePath = path.join(__dirname, '../db/students.json');
+const { app } = require('electron');
+const studentsFilePath = path.join(app.getPath('userData'), 'db/students.json');
 
 // Инициализация файла если он не существует
 function initializeStudentsFile() {

@@ -3,6 +3,7 @@ import { Button, CloseButton, Group, Input, Modal, Select, Stack } from "@mantin
 import { STATUS_STUDENT, STATUS_STUDENT_KURSANT } from "../consts";
 import useAddStudent from "../hooks/useAddStudent";
 import useUpdateStudent from "../hooks/useUpdateStudent";
+import useDeleteStudent from "../hooks/useDeleteStudent";
 
 export default function StudentCreateModal({
     opened,
@@ -18,6 +19,7 @@ export default function StudentCreateModal({
 
     const { addStudent } = useAddStudent();
     const { updateStudent } = useUpdateStudent();
+    const { deleteStudent } = useDeleteStudent();
 
     const disabledButtonAdd = !fio || !fieldOfStudy || !status;
     const editButtonDisabled = disabledButtonAdd || (fio === editStudent.fio && fieldOfStudy === editStudent.fieldOfStudy && status === editStudent.status);
@@ -45,6 +47,12 @@ export default function StudentCreateModal({
     const handleEditStudent = async () => {
         const { data } = await updateStudent(editStudent.id, { fio, fieldOfStudy, status });
         setStudents(prevStudents => prevStudents.map(student => student.id === editStudent.id ? { ...student, ...data } : student))
+        onCloseModal();
+    }
+
+    const handleDeleteStudent = async () => {
+        await deleteStudent(editStudent.id);
+        setStudents(prevStudents => prevStudents.filter(student => student.id !== editStudent.id))
         onCloseModal();
     }
 
@@ -101,21 +109,33 @@ export default function StudentCreateModal({
                         />
                     </Group>
 
-                    {
-                        editStudent?.id ?
+                    <Group grow>
+                        {
+                            editStudent?.id ?
+                                <Button
+                                    onClick={handleEditStudent}
+                                    disabled={editButtonDisabled}
+                                >
+                                    Изменить
+                                </Button> :
+                                <Button
+                                    onClick={handleAddStudent}
+                                    disabled={disabledButtonAdd}
+                                >
+                                    Добавить
+                                </Button>
+                        }
+
+                        {
+                            editStudent?.id &&
                             <Button
-                                onClick={handleEditStudent}
-                                disabled={editButtonDisabled}
+                                onClick={handleDeleteStudent}
+                                variant="outline"
                             >
-                                Изменить
-                            </Button> :
-                            <Button
-                                onClick={handleAddStudent}
-                                disabled={disabledButtonAdd}
-                            >
-                                Добавить
+                                Удалить
                             </Button>
-                    }
+                        }
+                    </Group>
                 </Stack>
             </Modal>
         </>

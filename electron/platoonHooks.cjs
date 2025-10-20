@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-// Путь к JSON файлу
-const dataFilePath = path.join(__dirname, '../db/platoon.json');
+const { app } = require('electron');
+const dataFilePath = path.join(app.getPath('userData'), 'db/platoon.json');
 
 // Инициализация файла если он не существует
 function initializeFile() {
@@ -76,10 +76,19 @@ function updatePlatoon(id, updatedData) {
 // Удаление данных по ID
 function deletePlatoon(id) {
     try {
-        const allData = getAllData();
-        const filteredData = allData.filter(item => item.id !== id);
-
+        const { data: allData } = getAllPlatoons();
+        const filteredData = allData.filter(item => String(item.id) !== String(id));
         fs.writeFileSync(dataFilePath, JSON.stringify(filteredData, null, 2));
+
+        // === Удаление студентов этого взвода ===
+        const studentsFilePath = path.join(__dirname, '../db/students.json');
+        if (fs.existsSync(studentsFilePath)) {
+            const studentsContent = fs.readFileSync(studentsFilePath, 'utf8');
+            const students = JSON.parse(studentsContent);
+            const filteredStudents = students.filter(student => String(student.platoonId) !== String(id));
+            fs.writeFileSync(studentsFilePath, JSON.stringify(filteredStudents, null, 2));
+        }
+        // === END ===
         return true;
     } catch (error) {
         console.error('Ошибка при удалении данных:', error);

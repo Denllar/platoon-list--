@@ -27,7 +27,7 @@ export default function PlatoonList() {
         <Stack align="center" p={'xs'}>
             <Stack gap={0}>
                 <Group
-                    justify="center"
+                    justify="space-between"
                 >
                     <Text fw={700}>Список взводов</Text>
                     <Button variant="outline" px={'xs'} py={0} onClick={open}>

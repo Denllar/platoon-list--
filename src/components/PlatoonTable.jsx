@@ -129,6 +129,13 @@ export default function PlatoonTable() {
                     onSortModelChange={setSortModel}
                     sortingOrder={['asc', 'desc']}
                     getRowId={(row) => row.id}
+                    getRowClassName={(params) =>
+                        params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
+                    }
+                    sx={{
+                        '& .even': { backgroundColor: '#f2f2f2' },
+                        '& .odd': { backgroundColor: '#ffffff' },
+                    }}
                 />
             </ScrollArea.Autosize>
 

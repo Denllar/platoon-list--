@@ -5,6 +5,7 @@ import { useDisclosure } from "@mantine/hooks";
 import useAddPlatoon from "../hooks/useAddPlatoon";
 import useUpdatePlatoon from "../hooks/useUpdatePlatoon";
 import { useNavigate } from "react-router-dom";
+import useDeletePlatoon from "../hooks/useDeletePlatoon";
 
 export default function PlatoonCreateModal({
     opened,
@@ -23,10 +24,15 @@ export default function PlatoonCreateModal({
 
     const { createPlatoon } = useAddPlatoon();
     const { updatePlatoon } = useUpdatePlatoon();
+    const { deletePlatoon } = useDeletePlatoon();
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteInput, setDeleteInput] = useState("");
+    const [deleteError, setDeleteError] = useState("");
 
     const onCloseModal = () => {
-        setTypePlatoon(null);
-        setNumberPlatoon(null);
+        setTypePlatoon("");
+        setNumberPlatoon("");
         setEditPlatoon({});
         close();
     }
@@ -49,9 +55,32 @@ export default function PlatoonCreateModal({
 
     const handleEditPlatoon = async () => {
         const { data } = await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon });
-        setPlatoons(prevPlatoons => prevPlatoons.map(platoon => platoon.id === editPlatoon.id ? { ...platoon, ...data } : platoon))
+        //setPlatoons(prevPlatoons => prevPlatoons.map(platoon => platoon.id === editPlatoon.id ? { ...platoon, ...data } : platoon))
         onCloseModal();
         window.location.reload()
+    }
+
+    const handleDeletePlatoon = () => {
+        setDeleteInput("");
+        setDeleteError("");
+        setShowDeleteModal(true);
+    }
+    
+    const confirmDeletePlatoon = async () => {
+        if (deleteInput === String(editPlatoon.number)) {
+            await deletePlatoon(editPlatoon.id);
+            setPlatoons(prevPlatoons => prevPlatoons.filter(platoon => platoon.id !== editPlatoon.id))
+            setShowDeleteModal(false);
+            onCloseModal();
+            navigate('/')
+        } else {
+            setDeleteError('Неверно введён номер взвода. Удаление отменено.');
+        }
+    }
+    const cancelDeletePlatoon = () => {
+        setShowDeleteModal(false);
+        setDeleteInput("");
+        setDeleteError("");
     }
 
     useEffect(() => {
@@ -92,21 +121,46 @@ export default function PlatoonCreateModal({
                         />
                     </Group>
 
-                    {
-                        editPlatoon?.id ?
+                    <Group grow>
+                        {
+                            editPlatoon?.id ?
+                                <Button
+                                    onClick={handleEditPlatoon}
+                                    disabled={editButtonDisabled}
+                                >
+                                    Изменить
+                                </Button> :
+                                <Button
+                                    onClick={addPlatoon}
+                                    disabled={disabledButtonAdd}
+                                >
+                                    Добавить
+                                </Button>
+                        }
+                        
+                        {
+                            editPlatoon?.id &&
                             <Button
-                                onClick={handleEditPlatoon}
-                                disabled={editButtonDisabled}
+                                onClick={handleDeletePlatoon}
+                                variant="outline"
                             >
-                                Изменить
-                            </Button> :
-                            <Button
-                                onClick={addPlatoon}
-                                disabled={disabledButtonAdd}
-                            >
-                                Добавить
+                                Удалить
                             </Button>
-                    }
+                        }
+                    </Group>
+                </Stack>
+            </Modal>
+
+            {/* Модальное окно удаления взвода */}
+            <Modal opened={showDeleteModal} onClose={cancelDeletePlatoon} centered title="Удалить взвод?" size="md">
+                <Stack>
+                    <Text>Для подтверждения удаления введите номер взвода: <b>{editPlatoon.number}</b></Text>
+                    <Input value={deleteInput} onChange={e => setDeleteInput(e.target.value)} placeholder="Введите номер взвода..." />
+                    {deleteError && <Text color="red" size="sm">{deleteError}</Text>}
+                    <Group justify="flex-end">
+                        <Button onClick={cancelDeletePlatoon} variant="default">Отменить</Button>
+                        <Button onClick={confirmDeletePlatoon} color="red">Удалить</Button>
+                    </Group>
                 </Stack>
             </Modal>
 
