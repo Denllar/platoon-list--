@@ -50,6 +50,8 @@ export default function PlatoonList() {
                     }
                 />
 
+                {value && <Text fw={700} size="xl" mb={'xl'}>Поиск по: {value}</Text>}
+
                 <ScrollArea.Autosize
                     mah="calc(100vh - 150px)"
                     type={"never"}
@@ -63,9 +65,8 @@ export default function PlatoonList() {
                             <Stack align="center" key={type} mb={'xl'}>
                                 <Text>{type}</Text>
                                 {platoonsOfType.map((platoon) => (
-                                    <Group w={'100%'}>
+                                    <Group w={'100%'} key={platoon.id}>
                                         <Button
-                                            key={platoon.id}
                                             flex={1}
                                             onClick={() => navigate(`${platoon.id}`)}
                                             disabled={platoon.id === id}

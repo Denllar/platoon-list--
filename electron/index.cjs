@@ -49,7 +49,7 @@ const createWindow = () => {
     width: width,
     height: height,
     title: 'Список Взводов',
-    icon: path.join(__dirname, '../dist/ВУЦ.png'),
+    icon: path.join(__dirname, '../dist/ВУЦ.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

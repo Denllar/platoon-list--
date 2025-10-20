@@ -77,6 +77,7 @@ export default function StudentCreateModal({
                         placeholder="ФИО"
                         value={fio}
                         onChange={(e) => setFio(e.target.value)}
+                        data-autofocus
                         rightSectionPointerEvents="all"
                         rightSection={
                             <CloseButton

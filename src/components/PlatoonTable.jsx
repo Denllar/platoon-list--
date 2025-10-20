@@ -29,7 +29,7 @@ const columns = [
         headerName: 'ФИО',
         headerAlign: 'center',
         align: 'center',
-        flex: 0.3,
+        flex: 0.5,
         resizable: false,
     },
     {
@@ -38,7 +38,7 @@ const columns = [
         type: 'number',
         headerAlign: 'center',
         align: 'center',
-        flex: 0.3,
+        flex: 0.25,
         resizable: false,
         sortable: false
     },
@@ -47,7 +47,7 @@ const columns = [
         headerName: 'Статус',
         headerAlign: 'center',
         align: 'center',
-        flex: 0.3,
+        flex: 0.25,
         resizable: false,
     },
 ];
@@ -115,7 +115,7 @@ export default function PlatoonTable() {
                 </Button>
             </Group>
 
-            {search && <Text c={'white'} fw={700} size="xl">Поиск по {search}</Text>}
+            {search && <Text c={'white'} fw={700} size="xl">Поиск по: {search}</Text>}
 
             <ScrollArea.Autosize>
                 <DataGrid
