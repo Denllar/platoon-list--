@@ -6,6 +6,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import useGetPlatoonById from "../hooks/useGetPlatoonById"
 import useGetStudents from "../hooks/useGetStudents"
 import StudentCreateModal from "./StudentCreateModal";
+import useDownloadTableWord from "../hooks/useDownloadTableWord";
 
 const columns = [
     {
@@ -75,6 +76,8 @@ export default function PlatoonTable() {
         );
     }, [students, search]);
 
+    const { exportToWord } = useDownloadTableWord({ filteredStudents, data });
+    
     const onEditStudent = (e) => {
         setEditStudent(e.row);
         open();
@@ -112,6 +115,12 @@ export default function PlatoonTable() {
                     onClick={open}
                 >
                     Добавить студента
+                </Button>
+                <Button
+                    variant="white"
+                    onClick={exportToWord}
+                >
+                    Скачать в Word
                 </Button>
             </Group>
 
