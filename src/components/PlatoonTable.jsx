@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { Button, CloseButton, Group, Input, ScrollArea, Stack, Text } from "@mantine/core";
+import { Button, CloseButton, Dialog, Group, Input, ScrollArea, Stack, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { DataGrid } from "@mui/x-data-grid";
 import useGetPlatoonById from "../hooks/useGetPlatoonById"
 import useGetStudents from "../hooks/useGetStudents"
 import StudentCreateModal from "./StudentCreateModal";
 import useDownloadTableWord from "../hooks/useDownloadTableWord";
+import useImportPlatoonsWord from "../hooks/useImportPlatoonsWord";
 
 const columns = [
     {
@@ -62,9 +63,11 @@ export default function PlatoonTable() {
     const [sortModel, setSortModel] = useState([{ field: 'fio', sort: 'asc' }]);
 
     const [opened, { open, close }] = useDisclosure(false);
+    const [openedDialog, { toggle: openDialog, close: closeDialog }] = useDisclosure(false);
 
     const { data } = useGetPlatoonById(platoonId);
-    const { getStudents, error, } = useGetStudents({ setStudents });
+    const { getStudents } = useGetStudents({ setStudents });
+    const { importFromWord, importStatus } = useImportPlatoonsWord();
 
     const filteredStudents = useMemo(() => {
         if (!search.trim()) return students;
@@ -77,7 +80,7 @@ export default function PlatoonTable() {
     }, [students, search]);
 
     const { exportToWord } = useDownloadTableWord({ filteredStudents, data });
-    
+
     const onEditStudent = (e) => {
         setEditStudent(e.row);
         open();
@@ -122,9 +125,25 @@ export default function PlatoonTable() {
                 >
                     Скачать в Word
                 </Button>
+                <Button
+                    variant="white"
+                    component="label"
+                >
+                    Импорт из Word
+                    <input
+                        type="file"
+                        hidden
+                        accept=".docx"
+                        onChange={(e) => {
+                            importFromWord(e);
+                            openDialog();
+                        }}
+                    />
+                </Button>
             </Group>
 
             {search && <Text c={'white'} fw={700} size="xl">Поиск по: {search}</Text>}
+            {/* {importStatus && <Text c="yellow" fw={700}>{importStatus}</Text>} */}
 
             <ScrollArea.Autosize>
                 <DataGrid
@@ -133,7 +152,6 @@ export default function PlatoonTable() {
                     disableColumnMenu
                     hideFooter
                     onRowClick={onEditStudent}
-                    sx={{ border: 0 }}
                     sortModel={sortModel}
                     onSortModelChange={setSortModel}
                     sortingOrder={['asc', 'desc']}
@@ -142,6 +160,7 @@ export default function PlatoonTable() {
                         params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
                     }
                     sx={{
+                        border: 0,
                         '& .even': { backgroundColor: '#f2f2f2' },
                         '& .odd': { backgroundColor: '#ffffff' },
                     }}
@@ -156,6 +175,12 @@ export default function PlatoonTable() {
                 editStudent={editStudent}
                 setEditStudent={setEditStudent}
             />
+
+            <Dialog opened={openedDialog} withCloseButton onClose={closeDialog} size="lg" radius="md">
+                <Text size="sm" mb="xs" fw={500}>
+                    {importStatus}
+                </Text>
+            </Dialog>
         </Stack>
     );
 }
