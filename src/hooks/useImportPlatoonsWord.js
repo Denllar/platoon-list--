@@ -95,6 +95,7 @@ export default function useImportPlatoonsWord() {
             debugLog.push(`platoonBlocks всего: ${platoonBlocks.length}, создано ${totalPlatoons} взводов, ${totalStudents} студентов`);
             setImportStatus(log);
             console.warn(log, debugLog);
+            window.location.reload();
         } catch (err) {
             setImportStatus('Ошибка импорта: ' + err.message);
         } finally {

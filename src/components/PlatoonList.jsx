@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Menu, Button, Group, ScrollArea, Stack, Text, CloseButton, Input } from "@mantine/core";
+import { Menu, Button, Group, ScrollArea, Stack, Text, CloseButton, Input, Drawer } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useNavigate, useParams } from "react-router-dom";
 import { MdModeEdit } from "react-icons/md";
+import { CiViewTable } from "react-icons/ci";
 import PlatoonAddModal from "./PlatoonCreateModal";
 import { TYPE_PLATOONS } from "../consts";
 import useGetPlatoons from "../hooks/useGetPlatoons";
@@ -15,7 +16,8 @@ export default function PlatoonList() {
     const [value, setValue] = useState('');
     const [editPlatoon, setEditPlatoon] = useState({});
 
-    const [opened, { open, close }] = useDisclosure(false);
+    const [openedModal, modal] = useDisclosure(false);
+    const [openedDrawer, drawer] = useDisclosure(false);
 
     const { getPlatoons } = useGetPlatoons({ setPlatoons });
 
@@ -30,8 +32,14 @@ export default function PlatoonList() {
                     justify="space-between"
                 >
                     <Text fw={700}>Список взводов</Text>
-                    <Button variant="outline" px={'xs'} py={0} onClick={open}>
+                    <Button variant="outline" px={'xs'} py={0} onClick={modal.open}>
                         +
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={drawer.open}
+                    >
+                        <CiViewTable />
                     </Button>
                 </Group>
 
@@ -79,7 +87,7 @@ export default function PlatoonList() {
                                             <Button
                                                 onClick={() => {
                                                     setEditPlatoon(platoon);
-                                                    open();
+                                                    modal.open();
                                                 }}
                                             >
                                                 <MdModeEdit />
@@ -100,12 +108,22 @@ export default function PlatoonList() {
             </Stack>
 
             <PlatoonAddModal
-                opened={opened}
-                close={close}
+                opened={openedModal}
+                close={modal.close}
                 setPlatoons={setPlatoons}
                 editPlatoon={editPlatoon}
                 setEditPlatoon={setEditPlatoon}
             />
+
+            <Drawer
+                opened={openedDrawer}
+                onClose={drawer.close}
+                position="right"
+                title="Итого"
+                size={'xl'}
+            >
+                
+            </Drawer>
         </Stack >
     );
 }
