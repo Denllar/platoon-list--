@@ -2,6 +2,8 @@ import { useState } from "react";
 import mammoth from "mammoth";
 import useAddPlatoon from "./useAddPlatoon";
 import useAddStudent from "./useAddStudent";
+import useGetStudents from "./useGetStudents";
+import useGetPlatoons from "./useGetPlatoons";
 
 function extractPlatoonInfo(title = "") {
     // Ищем номер взвода, который может содержать цифры и буквы (например: 312р, 301д)
@@ -17,12 +19,22 @@ function extractPlatoonInfo(title = "") {
 
 export default function useImportPlatoonsWord() {
     const [importStatus, setImportStatus] = useState("");
+    const [platoons, setPlatoons] = useState([]);
+    const [students, setStudents] = useState([]);
+    
     const { createPlatoon } = useAddPlatoon();
     const { addStudent } = useAddStudent();
+    const { getStudents } = useGetStudents({ setStudents });
+    const { getPlatoons } = useGetPlatoons({ setPlatoons });
 
     const importFromWord = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
+        
+        // Загружаем данные только когда они действительно нужны
+        await getPlatoons();
+        await getStudents();
+        
         setImportStatus("Импортирую...");
         try {
             const arrayBuffer = await file.arrayBuffer();
@@ -53,7 +65,6 @@ export default function useImportPlatoonsWord() {
                     
                     if (text) {
                         // Обновляем тип взвода при обнаружении разделов
-                        // Более точное определение разделов с учетом форматирования в документе
                         if (/кадров|офицер.*кадр/i.test(text)) {
                             currentPlatoonType = 'Кадровые офицеры';
                             debugLog.push(`Определен тип: ${currentPlatoonType}`);
@@ -97,6 +108,7 @@ export default function useImportPlatoonsWord() {
             });
 
             let totalPlatoons = 0, totalStudents = 0;
+            let skippedPlatoons = 0, skippedStudents = 0;
             
             for (const block of platoonBlocks) {
                 const { number } = extractPlatoonInfo(block.title);
@@ -108,22 +120,39 @@ export default function useImportPlatoonsWord() {
                 
                 debugLog.push(`Обрабатываем взвод №${number}, тип: ${block.type}`);
                 
-                // Создаем взвод
-                const platoonId = Date.now().toString() + Math.floor(Math.random()*1000);
-                const newPlatoon = { 
-                    id: platoonId, 
-                    number, 
-                    type: block.type
-                };
+                // Проверяем, существует ли уже такой взвод
+                const existingPlatoon = platoons.find(
+                    p => p.number === number && p.type === block.type
+                );
                 
-                const platoonRes = await createPlatoon(newPlatoon);
-                if (!platoonRes?.data) {
-                    debugLog.push(`Ошибка создания взвода ${number}`);
-                    continue;
+                let usedPlatoonId;
+                
+                if (existingPlatoon) {
+                    // Используем существующий взвод
+                    usedPlatoonId = existingPlatoon.id;
+                    debugLog.push(`Взвод ${number} уже существует, используем ID: ${usedPlatoonId}`);
+                    skippedPlatoons++;
+                } else {
+                    // Создаем новый взвод
+                    const platoonId = Date.now().toString() + Math.floor(Math.random()*1000);
+                    const newPlatoon = { 
+                        id: platoonId, 
+                        number, 
+                        type: block.type
+                    };
+                    
+                    const platoonRes = await createPlatoon(newPlatoon);
+                    if (!platoonRes?.data) {
+                        debugLog.push(`Ошибка создания взвода ${number}`);
+                        continue;
+                    }
+                    
+                    totalPlatoons++;
+                    usedPlatoonId = platoonRes.data.id || platoonId;
+                    
+                    // Обновляем локальное состояние взводов
+                    setPlatoons(prev => [...prev, { ...newPlatoon, id: usedPlatoonId }]);
                 }
-                
-                totalPlatoons++;
-                const usedPlatoonId = platoonRes.data.id || platoonId;
                 
                 // Обрабатываем таблицу студентов
                 const rows = Array.from(block.table.rows);
@@ -143,7 +172,6 @@ export default function useImportPlatoonsWord() {
                 const fioIndex = headers.findIndex(h => /фио|ф\.и\.о/i.test(h));
                 const groupIndex = headers.findIndex(h => /учебн.*групп|групп/i.test(h));
                 const statusIndex = headers.findIndex(h => /статус/i.test(h));
-                const commandersIndex = headers.findIndex(h => /младш.*команд|командир/i.test(h));
                 
                 // Альтернативный поиск колонок, если не нашли по основным шаблонам
                 const finalFioIndex = fioIndex !== -1 ? fioIndex : 
@@ -197,6 +225,17 @@ export default function useImportPlatoonsWord() {
                             cells[statusIndex].textContent.trim() : 'Зачислен')
                     };
                     
+                    // Проверяем, существует ли уже такой студент во взводе
+                    const existingStudent = students.find(
+                        s => s.fio === studentData.fio && s.platoonId === usedPlatoonId
+                    );
+                    
+                    if (existingStudent) {
+                        debugLog.push(`Студент ${studentData.fio} уже существует во взводе ${number}, пропускаем`);
+                        skippedStudents++;
+                        continue;
+                    }
+                    
                     debugLog.push(`Студент: ${studentData.fio}, статус: ${studentData.status}`);
                     
                     // Добавляем студента
@@ -212,23 +251,24 @@ export default function useImportPlatoonsWord() {
                     if (studentRes?.data) {
                         totalStudents++;
                         debugLog.push(`Успешно добавлен студент: ${studentData.fio}`);
+                        
+                        // Обновляем локальное состояние студентов
+                        setStudents(prev => [...prev, { ...newStudent, id: studentRes.data.id || newStudent.id }]);
                     } else {
                         debugLog.push(`Ошибка добавления студента: ${studentData.fio}`);
                     }
                 }
                 
-                debugLog.push(`Взвод ${number}: обработано студентов - ${totalStudents}`);
+                debugLog.push(`Взвод ${number}: обработано студентов - ${totalStudents}, пропущено - ${skippedStudents}`);
             }
             
-            const resultMessage = `Импорт завершен. Взводов: ${totalPlatoons}, Студентов: ${totalStudents}`;
+            const resultMessage = `Импорт завершен. 
+                Создано взводов: ${totalPlatoons}, пропущено: ${skippedPlatoons}
+                Создано студентов: ${totalStudents}, пропущено: ${skippedStudents}`;
             setImportStatus(resultMessage);
             console.log('Результат импорта:', resultMessage);
             console.log('Детали:', debugLog);
-            
-            if (totalPlatoons > 0) {
-                setTimeout(() => window.location.reload(), 3000);
-            }
-            
+            window.location.reload();
         } catch (err) {
             console.error('Ошибка импорта:', err);
             setImportStatus('Ошибка импорта: ' + err.message);

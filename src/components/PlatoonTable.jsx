@@ -8,6 +8,7 @@ import useGetStudents from "../hooks/useGetStudents"
 import StudentCreateModal from "./StudentCreateModal";
 import useDownloadTableWord from "../hooks/useDownloadTableWord";
 import useImportPlatoonsWord from "../hooks/useImportPlatoonsWord";
+import { STATUS_STUDENT } from "../consts"
 
 const columns = [
     {
@@ -156,13 +157,17 @@ export default function PlatoonTable() {
                     onSortModelChange={setSortModel}
                     sortingOrder={['asc', 'desc']}
                     getRowId={(row) => row.id}
-                    getRowClassName={(params) =>
-                        params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd'
-                    }
+                    getRowClassName={(params) => {
+                        if (params.row.status !== STATUS_STUDENT[0]) {
+                            return 'not-enrolled';
+                        }
+                        return params.indexRelativeToCurrentPage % 2 === 0 ? 'even' : 'odd';
+                    }}
                     sx={{
                         border: 0,
                         '& .even': { backgroundColor: '#f2f2f2' },
                         '& .odd': { backgroundColor: '#ffffff' },
+                        '& .not-enrolled': { backgroundColor: '#fa6666' },
                     }}
                 />
             </ScrollArea.Autosize>

@@ -68,7 +68,8 @@ export default function PlatoonList() {
                     {TYPE_PLATOONS.map((type) => {
                         const platoonsOfType = platoons
                             .filter((platoon) => platoon.type === type)
-                            .filter((platoon) => platoon.number.toString().includes(value));
+                            .filter((platoon) => platoon.number.toString().includes(value))
+                            .sort((a, b) => a.number - b.number);
                         if (platoonsOfType.length === 0) return null;
                         return (
                             <Stack align="center" key={type} mb={'xl'}>
