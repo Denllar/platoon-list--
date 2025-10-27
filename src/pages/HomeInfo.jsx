@@ -18,7 +18,7 @@ function HomeInfo() {
           <input
             type="file"
             hidden
-            accept=".docx"
+            //accept=".docx"
             onChange={(e) => {
               importFromWord(e);
               openDialog();
