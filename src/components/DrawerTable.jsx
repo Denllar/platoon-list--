@@ -1,4 +1,4 @@
-import { Drawer, Table, Text, ScrollArea, Stack } from '@mantine/core';
+import { Drawer, Text, ScrollArea, Stack } from '@mantine/core';
 import platoons from '../../db/platoon.json';
 import students from '../../db/students.json';
 
@@ -10,13 +10,13 @@ const courseAndSpec = (num) => {
   const str = num.toString().padStart(2, '0');
   return { 
     course: str[0], 
-    spec: str[1] // Берем только вторую цифру как специальность для группировки
+    spec: str[1]
   };
 };
 
 /* ---------- build data ---------- */
 function buildTables() {
-  const base = {}; // base[тип][курс][spec] = { platoons:[], totalSpec }
+  const base = {};
 
   platoons.forEach((p) => {
     const { course, spec } = courseAndSpec(p.number);
@@ -31,7 +31,6 @@ function buildTables() {
     base[t][course][spec].platoons.push({ number: p.number, qty });
   });
 
-  /* сортируем внутри специальности по полному номеру */
   Object.keys(base).forEach((t) =>
     Object.keys(base[t]).forEach((cr) =>
       Object.keys(base[t][cr]).forEach((sp) => {
@@ -42,7 +41,6 @@ function buildTables() {
     )
   );
 
-  /* готовим массив для отрисовки */
   return ['Кадровые офицеры', 'Офицеры запаса', 'Солдаты запаса']
     .map((title) => {
       const courseMap = base[title] || {};
@@ -55,23 +53,32 @@ function buildTables() {
         const specMap = courseMap[cr];
         const specs = Object.keys(specMap).sort((a, b) => a - b);
 
-        // Сначала вычисляем общую сумму по курсу
         let courseTotal = 0;
+        let courseRowCount = 0;
+        
+        // Сначала подсчитаем общее количество строк для курса
         specs.forEach((sp) => {
           courseTotal += specMap[sp].totalSpec;
+          courseRowCount += specMap[sp].platoons.length;
         });
 
         // Затем формируем строки
         specs.forEach((sp, specIdx) => {
           const { totalSpec, platoons } = specMap[sp];
+          const specRowCount = platoons.length;
 
           platoons.forEach((p, platIdx) => {
+            const isFirstCourseRow = specIdx === 0 && platIdx === 0;
+            const isFirstSpecRow = platIdx === 0;
+            
             rows.push({
-              course: specIdx === 0 && platIdx === 0 ? cr : '',
-              platoonNumber: p.number, // Полный номер взвода для отображения
+              course: isFirstCourseRow ? cr : '',
+              platoonNumber: p.number,
               qty: p.qty,
-              specTotal: platIdx === 0 ? totalSpec : '', // Итого по специальности
-              courseTotal: specIdx === 0 && platIdx === 0 ? courseTotal : '', // Всего по курсу
+              specTotal: isFirstSpecRow ? totalSpec : '',
+              courseTotal: isFirstCourseRow ? courseTotal : '',
+              courseRowSpan: isFirstCourseRow ? courseRowCount : 0,
+              specRowSpan: isFirstSpecRow ? specRowCount : 0,
             });
           });
         });
@@ -83,6 +90,41 @@ function buildTables() {
     })
     .filter((t) => t.rows.length > 0);
 }
+
+/* ---------- Custom Table Styles ---------- */
+const tableStyles = {
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    border: '2px solid black',
+    fontSize: '14px',
+  },
+  th: {
+    border: '1px solid black',
+    padding: '12px 8px',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    backgroundColor: '#f5f5f5',
+  },
+  td: {
+    border: '1px solid black',
+    padding: '8px',
+    textAlign: 'center',
+  },
+  tr: {
+    backgroundColor: 'white',
+  },
+  trStriped: {
+    backgroundColor: '#f9f9f9',
+  },
+  // Стили для ячеек без границ
+  noBorderBottom: {
+    borderBottom: 'none',
+  },
+  noBorderTop: {
+    borderTop: 'none',
+  }
+};
 
 /* ---------- component ---------- */
 export default function DrawerTable({ openedDrawer, drawer }) {
@@ -101,38 +143,49 @@ export default function DrawerTable({ openedDrawer, drawer }) {
           {tables.map(({ title, rows, grandTotal }) => (
             <div key={title}>
               <Text fw={700} size="lg" mb={8}>{title}</Text>
-              <Table
-                fontSize="sm"
-                striped
-                highlightOnHover
-                withBorder
-                withColumnBorders
-                styles={{
-                  td: { textAlign: 'center' },
-                  th: { textAlign: 'center' }
-                }}
-              >
+              <table style={tableStyles.table}>
                 <thead>
                   <tr>
-                    <th>Курс</th>
-                    <th>Взвод</th>
-                    <th>Кол-во</th>
-                    <th>Итого по спец.</th>
-                    <th>Всего по курсу</th>
+                    <th style={tableStyles.th}>Курс</th>
+                    <th style={tableStyles.th}>Взвод</th>
+                    <th style={tableStyles.th}>Кол-во</th>
+                    <th style={tableStyles.th}>Итого по спец.</th>
+                    <th style={tableStyles.th}>Всего по курсу</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((r, i) => (
-                    <tr key={i}>
-                      <td>{r.course}</td>
-                      <td>{r.platoonNumber}</td>
-                      <td>{r.qty}</td>
-                      <td>{r.specTotal}</td>
-                      <td>{r.courseTotal}</td>
-                    </tr>
-                  ))}
+                  {rows.map((r, i) => {
+                    // Определяем стили для ячеек с учетом объединения
+                    const isNewCourse = r.course !== '';
+                    const isNewSpec = r.specTotal !== '';
+                    
+                    // Для "Итого по спец." убираем нижнюю границу у всех строк кроме последней в группе
+                    const specTdStyle = {
+                      ...tableStyles.td,
+                      ...(!isNewSpec && i < rows.length - 1 && rows[i+1].specTotal === '' ? tableStyles.noBorderBottom : {})
+                    };
+                    
+                    // Для "Всего по курсу" убираем все границы кроме первой и последней в группе
+                    const courseTdStyle = {
+                      ...tableStyles.td,
+                      ...(!isNewCourse ? {
+                        borderTop: 'none',
+                        borderBottom: i < rows.length - 1 && rows[i+1].course === '' ? 'none' : '1px solid black'
+                      } : {})
+                    };
+                    
+                    return (
+                      <tr key={i} style={i % 2 === 0 ? tableStyles.tr : tableStyles.trStriped}>
+                        <td style={tableStyles.td}>{r.course}</td>
+                        <td style={tableStyles.td}>{r.platoonNumber}</td>
+                        <td style={tableStyles.td}>{r.qty}</td>
+                        <td style={specTdStyle}>{r.specTotal}</td>
+                        <td style={courseTdStyle}>{r.courseTotal}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
-              </Table>
+              </table>
               <Text align="right" mt={8} fw={600}>
                 Итого по таблице: {grandTotal} чел.
               </Text>
