@@ -7,6 +7,7 @@ import { CiViewTable } from "react-icons/ci";
 import PlatoonAddModal from "./PlatoonCreateModal";
 import { TYPE_PLATOONS } from "../consts";
 import useGetPlatoons from "../hooks/useGetPlatoons";
+import DrawerTable from "./DrawerTable";
 
 export default function PlatoonList() {
     const { id } = useParams();
@@ -115,15 +116,10 @@ export default function PlatoonList() {
                 setEditPlatoon={setEditPlatoon}
             />
 
-            <Drawer
-                opened={openedDrawer}
-                onClose={drawer.close}
-                position="right"
-                title="Итого"
-                size={'xl'}
-            >
-                
-            </Drawer>
+            <DrawerTable
+                openedDrawer={openedDrawer}
+                drawer={drawer}
+            />
         </Stack >
     );
 }
