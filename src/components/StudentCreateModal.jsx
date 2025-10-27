@@ -42,6 +42,7 @@ export default function StudentCreateModal({
         const { data } = await addStudent(studentObject);
         setStudents(prev => [...prev, data])
         onCloseModal();
+        window.location.reload();
     }
 
     const handleEditStudent = async () => {
@@ -54,6 +55,7 @@ export default function StudentCreateModal({
         await deleteStudent(editStudent.id);
         setStudents(prevStudents => prevStudents.filter(student => student.id !== editStudent.id))
         onCloseModal();
+        window.location.reload();
     }
 
     useEffect(() => {

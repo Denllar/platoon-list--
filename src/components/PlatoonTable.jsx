@@ -80,6 +80,10 @@ export default function PlatoonTable() {
         );
     }, [students, search]);
 
+    const enrolledStudentsCount = useMemo(() => {
+        return filteredStudents.filter(student => student.status === STATUS_STUDENT[0]).length;
+    }, [filteredStudents]);
+
     const { exportToWord } = useDownloadTableWord({ filteredStudents, data });
 
     const onEditStudent = (e) => {
@@ -153,6 +157,7 @@ export default function PlatoonTable() {
                     disableColumnMenu
                     hideFooter
                     onRowClick={onEditStudent}
+                    disableRowSelectionOnClick
                     sortModel={sortModel}
                     onSortModelChange={setSortModel}
                     sortingOrder={['asc', 'desc']}
@@ -171,6 +176,10 @@ export default function PlatoonTable() {
                     }}
                 />
             </ScrollArea.Autosize>
+
+            <Group justify="flex-end" w="100%">
+                <Text c={'white'} size="lg">Кол-во студентов: {enrolledStudentsCount}</Text>
+            </Group>
 
             <StudentCreateModal
                 opened={opened}
