@@ -1,12 +1,12 @@
 import { useState } from "react";
 import mammoth from "mammoth";
+import JSZip from "jszip";
 import useAddPlatoon from "./useAddPlatoon";
 import useAddStudent from "./useAddStudent";
 import useGetStudents from "./useGetStudents";
 import useGetPlatoons from "./useGetPlatoons";
 
 function extractPlatoonInfo(title = "") {
-    // Ищем номер взвода, который может содержать цифры и буквы (например: 312р, 301д)
     const numberMatch = title.match(/взвод.*?(\d+[а-яa-z]*)/i);
     let number = numberMatch ? numberMatch[1] : "";
     
@@ -15,6 +15,86 @@ function extractPlatoonInfo(title = "") {
     else if (/офицер/i.test(title)) type = 'Офицеры запаса';
     else if (/солдат/i.test(title)) type = 'Солдаты запаса';
     return { number, type };
+}
+
+// Функция для получения информации о цветных строках из DOCX
+async function getColoredRowsInfo(fileBuffer) {
+    try {
+        const zip = await JSZip.loadAsync(fileBuffer);
+        const documentXml = await zip.file('word/document.xml').async('text');
+        
+        // Создаем парсер для XML
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(documentXml, 'text/xml');
+        
+        const coloredRows = [];
+        const tables = xmlDoc.getElementsByTagName('w:tbl');
+        
+        for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+            const table = tables[tableIndex];
+            const rows = table.getElementsByTagName('w:tr');
+            
+            for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+                const row = rows[rowIndex];
+                const cells = row.getElementsByTagName('w:tc');
+                let isColored = false;
+                
+                // Проверяем все ячейки в строке на наличие цвета
+                for (let cellIndex = 0; cellIndex < cells.length; cellIndex++) {
+                    const cell = cells[cellIndex];
+                    
+                    // Проверяем заливку ячейки
+                    const tcPr = cell.getElementsByTagName('w:tcPr')[0];
+                    if (tcPr) {
+                        const shd = tcPr.getElementsByTagName('w:shd')[0];
+                        if (shd && shd.getAttribute('w:fill')) {
+                            const fillColor = shd.getAttribute('w:fill');
+                            // Если цвет заливки не белый и не прозрачный
+                            if (fillColor && fillColor !== 'auto' && fillColor !== 'FFFFFF' && fillColor !== '000000') {
+                                isColored = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Проверяем цвет текста в ячейке
+                    const paragraphs = cell.getElementsByTagName('w:p');
+                    for (let p = 0; p < paragraphs.length; p++) {
+                        const runs = paragraphs[p].getElementsByTagName('w:r');
+                        for (let r = 0; r < runs.length; r++) {
+                            const run = runs[r];
+                            const rPr = run.getElementsByTagName('w:rPr')[0];
+                            if (rPr) {
+                                const color = rPr.getElementsByTagName('w:color')[0];
+                                if (color && color.getAttribute('w:val')) {
+                                    const colorVal = color.getAttribute('w:val');
+                                    // Если цвет текста не черный и не авто
+                                    if (colorVal && colorVal !== 'auto' && colorVal !== '000000' && colorVal !== 'FFFFFF') {
+                                        isColored = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (isColored) break;
+                    }
+                    if (isColored) break;
+                }
+                
+                if (isColored) {
+                    coloredRows.push({
+                        tableIndex,
+                        rowIndex
+                    });
+                }
+            }
+        }
+        
+        return coloredRows;
+    } catch (error) {
+        console.error('Ошибка при анализе цветов:', error);
+        return [];
+    }
 }
 
 export default function useImportPlatoonsWord() {
@@ -31,7 +111,6 @@ export default function useImportPlatoonsWord() {
         const file = event.target.files[0];
         if (!file) return;
         
-        // Загружаем данные только когда они действительно нужны
         await getPlatoons();
         await getStudents();
         
@@ -39,14 +118,12 @@ export default function useImportPlatoonsWord() {
         try {
             const arrayBuffer = await file.arrayBuffer();
             
-            const { value } = await mammoth.convertToHtml({ 
-                arrayBuffer,
-                styleMap: [
-                    "r[color='FF0000'] => red",
-                    "r[color='red'] => red",
-                    "r[style*='color:red'] => red"
-                ]
-            });
+            // Получаем информацию о цветных строках
+            const coloredRowsInfo = await getColoredRowsInfo(arrayBuffer);
+            console.log('Цветные строки:', coloredRowsInfo);
+            
+            // Используем Mammoth для извлечения текста
+            const { value } = await mammoth.convertToHtml({ arrayBuffer });
             
             const doc = document.createElement("div");
             doc.innerHTML = value;
@@ -55,8 +132,6 @@ export default function useImportPlatoonsWord() {
             let platoonBlocks = [];
             let currentTitle = null;
             let debugLog = [];
-
-            // Определяем текущий тип взвода
             let currentPlatoonType = 'Кадровые офицеры';
             
             nodes.forEach(node => {
@@ -64,7 +139,6 @@ export default function useImportPlatoonsWord() {
                     const text = node.textContent.trim();
                     
                     if (text) {
-                        // Обновляем тип взвода при обнаружении разделов
                         if (/кадров|офицер.*кадр/i.test(text)) {
                             currentPlatoonType = 'Кадровые офицеры';
                             debugLog.push(`Определен тип: ${currentPlatoonType}`);
@@ -76,7 +150,6 @@ export default function useImportPlatoonsWord() {
                             debugLog.push(`Определен тип: ${currentPlatoonType}`);
                         }
                         
-                        // Ищем заголовки учебных взводов (включая солдат запаса с буквами в номере)
                         if (/учебн.*взвод.*\d+[а-яa-z]*/i.test(text) || /взвод.*\d+[а-яa-z]*/i.test(text)) {
                             currentTitle = text;
                             debugLog.push(`Найден взвод: ${text}, тип: ${currentPlatoonType}`);
@@ -84,14 +157,10 @@ export default function useImportPlatoonsWord() {
                     }
                 }
                 
-                // Обрабатываем таблицы после заголовка взвода
                 if (node.tagName === 'TABLE' && currentTitle) {
-                    // Для солдат запаса с буквами в номере принудительно устанавливаем тип
                     const { number } = extractPlatoonInfo(currentTitle);
                     let finalType = currentPlatoonType;
                     
-                    // Если номер содержит буквы (312р, 301д и т.д.) и текущий тип не солдаты,
-                    // принудительно меняем на солдат запаса
                     if (number && /[а-яa-z]$/i.test(number) && currentPlatoonType !== 'Солдаты запаса') {
                         finalType = 'Солдаты запаса';
                         debugLog.push(`Принудительно установлен тип "Солдаты запаса" для взвода ${number}`);
@@ -109,18 +178,19 @@ export default function useImportPlatoonsWord() {
 
             let totalPlatoons = 0, totalStudents = 0;
             let skippedPlatoons = 0, skippedStudents = 0;
+            let tableIndex = 0;
             
             for (const block of platoonBlocks) {
                 const { number } = extractPlatoonInfo(block.title);
                 
                 if (!number) {
                     debugLog.push(`Не удалось извлечь номер из: ${block.title}`);
+                    tableIndex++;
                     continue;
                 }
                 
                 debugLog.push(`Обрабатываем взвод №${number}, тип: ${block.type}`);
                 
-                // Проверяем, существует ли уже такой взвод
                 const existingPlatoon = platoons.find(
                     p => p.number === number && p.type === block.type
                 );
@@ -128,12 +198,10 @@ export default function useImportPlatoonsWord() {
                 let usedPlatoonId;
                 
                 if (existingPlatoon) {
-                    // Используем существующий взвод
                     usedPlatoonId = existingPlatoon.id;
                     debugLog.push(`Взвод ${number} уже существует, используем ID: ${usedPlatoonId}`);
                     skippedPlatoons++;
                 } else {
-                    // Создаем новый взвод
                     const platoonId = Date.now().toString() + Math.floor(Math.random()*1000);
                     const newPlatoon = { 
                         id: platoonId, 
@@ -144,60 +212,50 @@ export default function useImportPlatoonsWord() {
                     const platoonRes = await createPlatoon(newPlatoon);
                     if (!platoonRes?.data) {
                         debugLog.push(`Ошибка создания взвода ${number}`);
+                        tableIndex++;
                         continue;
                     }
                     
                     totalPlatoons++;
                     usedPlatoonId = platoonRes.data.id || platoonId;
-                    
-                    // Обновляем локальное состояние взводов
                     setPlatoons(prev => [...prev, { ...newPlatoon, id: usedPlatoonId }]);
                 }
                 
-                // Обрабатываем таблицу студентов
                 const rows = Array.from(block.table.rows);
                 debugLog.push(`Найдено строк в таблице: ${rows.length}`);
                 
                 if (rows.length < 2) {
                     debugLog.push(`Таблица взвода ${number} слишком мала`);
+                    tableIndex++;
                     continue;
                 }
                 
-                // Определяем заголовки таблицы
                 const headerCells = Array.from(rows[0].cells);
                 const headers = headerCells.map(cell => cell.textContent.trim().toLowerCase());
                 debugLog.push(`Заголовки таблицы: ${headers.join(', ')}`);
                 
-                // Находим индексы колонок
                 const fioIndex = headers.findIndex(h => /фио|ф\.и\.о/i.test(h));
                 const groupIndex = headers.findIndex(h => /учебн.*групп|групп/i.test(h));
-                const statusIndex = headers.findIndex(h => /статус/i.test(h));
                 
-                // Альтернативный поиск колонок, если не нашли по основным шаблонам
-                const finalFioIndex = fioIndex !== -1 ? fioIndex : 
-                                    headers.findIndex(h => h.includes('фио') || h.includes('ф.и.о'));
-                const finalGroupIndex = groupIndex !== -1 ? groupIndex : 
-                                      headers.findIndex(h => h.includes('учеб') || h.includes('групп'));
-                
-                if (finalFioIndex === -1) {
+                if (fioIndex === -1) {
                     debugLog.push(`Не найдена колонка ФИО в таблице взвода ${number}`);
+                    tableIndex++;
                     continue;
                 }
                 
-                debugLog.push(`Индексы колонок - ФИО: ${finalFioIndex}, Группа: ${finalGroupIndex}, Статус: ${statusIndex}`);
+                debugLog.push(`Индексы колонок - ФИО: ${fioIndex}, Группа: ${groupIndex}`);
                 
-                // Обрабатываем строки студентов (пропускаем заголовок)
+                // Обрабатываем строки студентов
                 for (let i = 1; i < rows.length; i++) {
                     const cells = Array.from(rows[i].cells);
                     
-                    if (cells.length <= finalFioIndex) {
+                    if (cells.length <= fioIndex) {
                         continue;
                     }
                     
-                    const fioCell = cells[finalFioIndex];
+                    const fioCell = cells[fioIndex];
                     const fioText = fioCell.textContent.trim();
                     
-                    // Пропускаем пустые строки и строки с названиями институтов/факультетов
                     if (!fioText || 
                         fioText.includes('Институт') || 
                         fioText.includes('Факультет') ||
@@ -206,26 +264,18 @@ export default function useImportPlatoonsWord() {
                         continue;
                     }
                     
-                    // Проверяем красный цвет текста
-                    let isRed = false;
-                    try {
-                        isRed = fioCell.innerHTML.includes('color:red') || 
-                                fioCell.innerHTML.includes('color="red"') ||
-                                Array.from(fioCell.getElementsByTagName('red')).length > 0 ||
-                                fioCell.innerHTML.includes('FF0000');
-                    } catch (e) {
-                        console.warn('Ошибка проверки цвета:', e);
-                    }
+                    // Проверяем, является ли эта строка цветной
+                    const isColoredRow = coloredRowsInfo.some(info => 
+                        info.tableIndex === tableIndex && info.rowIndex === i
+                    );
                     
                     const studentData = {
                         fio: fioText,
-                        fieldOfStudy: finalGroupIndex !== -1 && cells[finalGroupIndex] ? 
-                            cells[finalGroupIndex].textContent.trim() : '',
-                        status: isRed ? 'Отстранён' : (statusIndex !== -1 && cells[statusIndex] ? 
-                            cells[statusIndex].textContent.trim() : 'Зачислен')
+                        fieldOfStudy: groupIndex !== -1 && cells[groupIndex] ? 
+                            cells[groupIndex].textContent.trim() : '',
+                        status: isColoredRow ? 'Отстранён' : 'Зачислен'
                     };
                     
-                    // Проверяем, существует ли уже такой студент во взводе
                     const existingStudent = students.find(
                         s => s.fio === studentData.fio && s.platoonId === usedPlatoonId
                     );
@@ -236,9 +286,8 @@ export default function useImportPlatoonsWord() {
                         continue;
                     }
                     
-                    debugLog.push(`Студент: ${studentData.fio}, статус: ${studentData.status}`);
+                    debugLog.push(`Студент: ${studentData.fio}, статус: ${studentData.status}, цветная строка: ${isColoredRow}`);
                     
-                    // Добавляем студента
                     const newStudent = {
                         id: Date.now().toString() + Math.floor(Math.random()*1000),
                         platoonId: usedPlatoonId,
@@ -251,14 +300,13 @@ export default function useImportPlatoonsWord() {
                     if (studentRes?.data) {
                         totalStudents++;
                         debugLog.push(`Успешно добавлен студент: ${studentData.fio}`);
-                        
-                        // Обновляем локальное состояние студентов
                         setStudents(prev => [...prev, { ...newStudent, id: studentRes.data.id || newStudent.id }]);
                     } else {
                         debugLog.push(`Ошибка добавления студента: ${studentData.fio}`);
                     }
                 }
                 
+                tableIndex++;
                 debugLog.push(`Взвод ${number}: обработано студентов - ${totalStudents}, пропущено - ${skippedStudents}`);
             }
             
