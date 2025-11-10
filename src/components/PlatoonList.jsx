@@ -8,12 +8,14 @@ import PlatoonAddModal from "./PlatoonCreateModal";
 import { TYPE_PLATOONS } from "../consts";
 import useGetPlatoons from "../hooks/useGetPlatoons";
 import DrawerTable from "./DrawerTable";
+import useGetStudents from "../hooks/useGetStudents";
 
 export default function PlatoonList() {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [platoons, setPlatoons] = useState([]);
+    const [students, setStudents] = useState([]);
     const [value, setValue] = useState('');
     const [editPlatoon, setEditPlatoon] = useState({});
 
@@ -21,9 +23,11 @@ export default function PlatoonList() {
     const [openedDrawer, drawer] = useDisclosure(false);
 
     const { getPlatoons } = useGetPlatoons({ setPlatoons });
+    const { getStudents } = useGetStudents({setStudents});
 
     useEffect(() => {
         getPlatoons();
+        getStudents();
     }, [])
 
     return (
@@ -120,6 +124,8 @@ export default function PlatoonList() {
             <DrawerTable
                 openedDrawer={openedDrawer}
                 drawer={drawer}
+                platoons={platoons}
+                students={students}
             />
         </Stack >
     );

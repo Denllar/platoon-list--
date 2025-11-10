@@ -57,7 +57,7 @@ const createWindow = () => {
     }
   })
 
-  win.webContents.openDevTools()
+  //win.webContents.openDevTools()
   win.maximize();
 
   const isDev = !app.isPackaged;

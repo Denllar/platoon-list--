@@ -2,9 +2,6 @@ import { Drawer, Text, ScrollArea, Stack } from '@mantine/core';
 // import platoons from '../../db/platoon.json';
 // import students from '../../db/students.json';
 import { TYPE_PLATOONS } from "../consts";
-import { useEffect, useState } from 'react';
-import useGetPlatoons from "../hooks/useGetPlatoons"
-import useGetStudents from "../hooks/useGetStudents"
 
 /* ---------- helpers ---------- */
 const enrolled = (id, students) =>
@@ -111,19 +108,8 @@ const tableStyles = {
 };
 
 /* ---------- component ---------- */
-export default function DrawerTable({ openedDrawer, drawer }) {
-    const [platoons, setPlatoons] = useState([]);
-    const [students, setStudents] = useState([]);
-
-    const { getPlatoons } = useGetPlatoons({setPlatoons});
-    const { getStudents } = useGetStudents({setStudents});
-
+export default function DrawerTable({ openedDrawer, drawer, platoons, students }) {
     const tables = buildTables(platoons, students);
-
-    useEffect(() => {
-        getPlatoons();
-        getStudents();
-    }, []);
 
     return (
         <Drawer

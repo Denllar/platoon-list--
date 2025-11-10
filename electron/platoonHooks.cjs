@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const { app } = require('electron');
-const dataFilePath = path.join(__dirname, '../db/platoon.json');
-//const dataFilePath = path.join(app.getPath('userData'), 'db/platoon.json');
+//const dataFilePath = path.join(__dirname, '../db/platoon.json');
+const dataFilePath = path.join(app.getPath('userData'), 'db/platoon.json');
 
 // Инициализация файла если он не существует
 function initializeFile() {
