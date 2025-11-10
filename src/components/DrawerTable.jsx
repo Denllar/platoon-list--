@@ -1,10 +1,13 @@
 import { Drawer, Text, ScrollArea, Stack } from '@mantine/core';
-import platoons from '../../db/platoon.json';
-import students from '../../db/students.json';
+// import platoons from '../../db/platoon.json';
+// import students from '../../db/students.json';
 import { TYPE_PLATOONS } from "../consts";
+import { useEffect, useState } from 'react';
+import useGetPlatoons from "../hooks/useGetPlatoons"
+import useGetStudents from "../hooks/useGetStudents"
 
 /* ---------- helpers ---------- */
-const enrolled = (id) =>
+const enrolled = (id, students) =>
     students.filter((s) => s.platoonId === id && s.status === 'Зачислен').length;
 
 const courseAndSpec = (num) => {
@@ -16,11 +19,11 @@ const courseAndSpec = (num) => {
 };
 
 /* ---------- build data ---------- */
-function buildTables() {
+function buildTables(platoons, students) {
     const base = {};
     platoons.forEach((p) => {
         const { course, spec } = courseAndSpec(p.number);
-        const qty = enrolled(p.id);
+        const qty = enrolled(p.id, students);
         const t = p.type;
         base[t] ??= {};
         base[t][course] ??= {};
@@ -109,7 +112,18 @@ const tableStyles = {
 
 /* ---------- component ---------- */
 export default function DrawerTable({ openedDrawer, drawer }) {
-    const tables = buildTables();
+    const [platoons, setPlatoons] = useState([]);
+    const [students, setStudents] = useState([]);
+
+    const { getPlatoons } = useGetPlatoons({setPlatoons});
+    const { getStudents } = useGetStudents({setStudents});
+
+    const tables = buildTables(platoons, students);
+
+    useEffect(() => {
+        getPlatoons();
+        getStudents();
+    }, []);
 
     return (
         <Drawer
