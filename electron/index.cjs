@@ -7,7 +7,8 @@ const {
   getPlatoonById,
   addPlatoon,
   updatePlatoon,
-  deletePlatoon } = require('./platoonHooks.cjs');
+  deletePlatoon,
+  deleteAllPlatoons } = require('./platoonHooks.cjs');
 
 const {
   getAllStudents,
@@ -48,6 +49,7 @@ const createWindow = () => {
   const win = new BrowserWindow({
     width: width,
     height: height,
+    autoHideMenuBar: true,
     title: 'Контингент обучающихся',
     icon: path.join(__dirname, '../dist/BVL.ico'),
     webPreferences: {
@@ -89,6 +91,10 @@ ipcMain.handle('update-platoon', async (event, id, data) => {
 
 ipcMain.handle('delete-platoon', async (event, id) => {
   return deletePlatoon(id);
+});
+
+ipcMain.handle('delete-all-platoons', async (event, id) => {
+  return deleteAllPlatoons();
 });
 
 // Студент

@@ -24,9 +24,9 @@ export default function Home() {
             <PanelGroup direction="horizontal" storage={localStorageAdapter} id="main-panels">
                 <Panel
                     style={{ height: "100%" }}
-                    minSize={20}
+                    minSize={10}
                     maxSize={30}
-                    defaultSize={25}
+                    defaultSize={15}
                     order={1}
                 >
                     <PlatoonList />

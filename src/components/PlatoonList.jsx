@@ -4,11 +4,13 @@ import { useDisclosure } from "@mantine/hooks";
 import { useNavigate, useParams } from "react-router-dom";
 import { MdModeEdit } from "react-icons/md";
 import { CiViewTable } from "react-icons/ci";
+import { CiSettings } from "react-icons/ci";
 import PlatoonAddModal from "./PlatoonCreateModal";
 import { TYPE_PLATOONS } from "../consts";
 import useGetPlatoons from "../hooks/useGetPlatoons";
 import DrawerTable from "./DrawerTable";
 import useGetStudents from "../hooks/useGetStudents";
+import SettingsModal from "./SettingsModal";
 
 export default function PlatoonList() {
     const { id } = useParams();
@@ -20,6 +22,7 @@ export default function PlatoonList() {
     const [editPlatoon, setEditPlatoon] = useState({});
 
     const [openedModal, modal] = useDisclosure(false);
+    const [openedModalSettings, modalSettings] = useDisclosure(false);
     const [openedDrawer, drawer] = useDisclosure(false);
 
     const { getPlatoons } = useGetPlatoons({ setPlatoons });
@@ -33,10 +36,10 @@ export default function PlatoonList() {
     return (
         <Stack align="center" p={'xs'}>
             <Stack gap={0}>
+                <Text fw={700} mb={'md'}>Контингент обучающихся</Text>
                 <Group
                     justify="space-between"
                 >
-                    <Text fw={700}>Контингент обучающихся</Text>
                     <Button variant="outline" px={'xs'} py={0} onClick={modal.open}>
                         +
                     </Button>
@@ -45,6 +48,12 @@ export default function PlatoonList() {
                         onClick={drawer.open}
                     >
                         <CiViewTable />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={modalSettings.open}
+                    >
+                        <CiSettings />
                     </Button>
                 </Group>
 
@@ -119,6 +128,12 @@ export default function PlatoonList() {
                 setPlatoons={setPlatoons}
                 editPlatoon={editPlatoon}
                 setEditPlatoon={setEditPlatoon}
+            />
+
+            <SettingsModal
+                opened={openedModalSettings}
+                close={modalSettings.close}
+                quantityPlatoons={platoons.length}
             />
 
             <DrawerTable

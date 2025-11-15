@@ -4,6 +4,7 @@ const path = require('path');
 const { app } = require('electron');
 //const dataFilePath = path.join(__dirname, '../db/platoon.json');
 const dataFilePath = path.join(app.getPath('userData'), 'db/platoon.json');
+const studentsFilePath = path.join(app.getPath('userData'), 'db/students.json');
 
 // Инициализация файла если он не существует
 function initializeFile() {
@@ -82,7 +83,7 @@ function deletePlatoon(id) {
         fs.writeFileSync(dataFilePath, JSON.stringify(filteredData, null, 2));
 
         // === Удаление студентов этого взвода ===
-        const studentsFilePath = path.join(__dirname, '../db/students.json');
+        //const studentsFilePath = path.join(__dirname, '../db/students.json');
         if (fs.existsSync(studentsFilePath)) {
             const studentsContent = fs.readFileSync(studentsFilePath, 'utf8');
             const students = JSON.parse(studentsContent);
@@ -97,10 +98,39 @@ function deletePlatoon(id) {
     }
 }
 
+// Полная очистка всех данных (взводов и студентов)
+function deleteAllPlatoons() {
+    try {
+        // Очищаем файл взводов
+        fs.writeFileSync(dataFilePath, JSON.stringify([], null, 2));
+        
+        // Создаем директорию для студентов, если она не существует
+        const studentsDir = path.dirname(studentsFilePath);
+        if (!fs.existsSync(studentsDir)) {
+            fs.mkdirSync(studentsDir, { recursive: true });
+        }
+        
+        // Записываем пустой массив в файл студентов
+        fs.writeFileSync(studentsFilePath, JSON.stringify([], null, 2));
+        
+        return { 
+            success: true, 
+            message: 'Все взвода и студенты успешно удалены' 
+        };
+    } catch (error) {
+        console.error('Ошибка при полной очистке данных:', error);
+        return { 
+            success: false, 
+            error: `Ошибка при очистке данных: ${error.message}`
+        };
+    }
+}
+
 module.exports = {
     getAllPlatoons,
     getPlatoonById,
     addPlatoon,
     updatePlatoon,
-    deletePlatoon
+    deletePlatoon,
+    deleteAllPlatoons,
 };

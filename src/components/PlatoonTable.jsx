@@ -178,7 +178,7 @@ export default function PlatoonTable() {
             </ScrollArea.Autosize>
 
             <Group justify="flex-end" w="100%">
-                <Text c={'white'} size="lg">Кол-во студентов: {enrolledStudentsCount}</Text>
+                <Text c={'white'} size="lg">Количество студентов: {enrolledStudentsCount}</Text>
             </Group>
 
             <StudentCreateModal

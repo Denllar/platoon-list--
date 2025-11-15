@@ -107,7 +107,6 @@ const tableStyles = {
 
 /* ---------- component ---------- */
 export default function DrawerTable({ openedDrawer, drawer, platoons=[], students=[] }) {
-    console.log(platoons, students);
     const tables = buildTables(platoons, students);
     return (
         <Drawer
