@@ -1,6 +1,4 @@
 import { Drawer, Text, ScrollArea, Stack } from '@mantine/core';
-// import platoons from '../../db/platoon.json';
-// import students from '../../db/students.json';
 import { TYPE_PLATOONS } from "../consts";
 
 /* ---------- helpers ---------- */
@@ -108,9 +106,9 @@ const tableStyles = {
 };
 
 /* ---------- component ---------- */
-export default function DrawerTable({ openedDrawer, drawer, platoons, students }) {
+export default function DrawerTable({ openedDrawer, drawer, platoons=[], students=[] }) {
+    console.log(platoons, students);
     const tables = buildTables(platoons, students);
-
     return (
         <Drawer
             opened={openedDrawer}

@@ -23,7 +23,7 @@ export default function PlatoonList() {
     const [openedDrawer, drawer] = useDisclosure(false);
 
     const { getPlatoons } = useGetPlatoons({ setPlatoons });
-    const { getStudents } = useGetStudents({setStudents});
+    const { getStudents } = useGetStudents({ setStudents });
 
     useEffect(() => {
         getPlatoons();
@@ -36,7 +36,7 @@ export default function PlatoonList() {
                 <Group
                     justify="space-between"
                 >
-                    <Text fw={700}>Список взводов</Text>
+                    <Text fw={700}>Контингент обучающихся</Text>
                     <Button variant="outline" px={'xs'} py={0} onClick={modal.open}>
                         +
                     </Button>

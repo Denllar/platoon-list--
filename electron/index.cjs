@@ -48,8 +48,8 @@ const createWindow = () => {
   const win = new BrowserWindow({
     width: width,
     height: height,
-    title: 'Список Взводов',
-    icon: path.join(__dirname, '../dist/ВУЦ.ico'),
+    title: 'Контингент обучающихся',
+    icon: path.join(__dirname, '../dist/BVL.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

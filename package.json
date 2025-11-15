@@ -50,7 +50,8 @@
     "wait-on": "^8.0.5"
   },
   "build": {
-    "appId": "your.platoon.list.app",
+    "appId": "com.vuc.contingent",
+    "productName": "Контингент обучающихся",
     "directories": {
       "buildResources": "dist",
       "output": "release"
@@ -64,7 +65,22 @@
       "db/**"
     ],
     "win": {
-      "target": "nsis"
+      "icon": "dist/BVL.ico",
+      "target": {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "dist/BVL.ico",
+      "uninstallerIcon": "dist/BVL.ico",
+      "installerHeaderIcon": "dist/BVL.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Контингент обучающихся",
+      "deleteAppDataOnUninstall": false
     }
   }
 }
