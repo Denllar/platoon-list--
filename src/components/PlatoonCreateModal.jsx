@@ -13,6 +13,7 @@ export default function PlatoonCreateModal({
     setPlatoons,
     editPlatoon,
     setEditPlatoon,
+    showOnlyArchive,
 }) {
     const navigate = useNavigate();
 
@@ -42,6 +43,7 @@ export default function PlatoonCreateModal({
             id: Date.now().toString(),
             type: typePlatoon,
             number: numberPlatoon,
+            isInArchive: false,
         }
         const { data, error: addError } = await createPlatoon(platoonObject);
         if (addError) {
@@ -65,14 +67,15 @@ export default function PlatoonCreateModal({
         setDeleteError("");
         setShowDeleteModal(true);
     }
-    
+
     const confirmDeletePlatoon = async () => {
         if (deleteInput === String(editPlatoon.number)) {
-            await deletePlatoon(editPlatoon.id);
+            await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon, isInArchive: true });
             setPlatoons(prevPlatoons => prevPlatoons.filter(platoon => platoon.id !== editPlatoon.id))
             setShowDeleteModal(false);
             onCloseModal();
             navigate('/')
+            window.location.reload();
         } else {
             setDeleteError('Неверно введён номер взвода. Удаление отменено.');
         }
@@ -137,14 +140,40 @@ export default function PlatoonCreateModal({
                                     Добавить
                                 </Button>
                         }
-                        
+
                         {
-                            editPlatoon?.id &&
+                            editPlatoon?.id && !showOnlyArchive &&
                             <Button
                                 onClick={handleDeletePlatoon}
                                 variant="outline"
                             >
                                 Удалить
+                            </Button>
+                        }
+
+                        {
+                            showOnlyArchive &&
+                            <Button
+                                onClick={async () => {
+                                    await deletePlatoon(editPlatoon.id);
+                                    window.location.reload();
+                                }}
+                                variant="outline"
+                            >
+                                Удалить с архива
+                            </Button>
+                        }
+
+                        {
+                            showOnlyArchive &&
+                            <Button
+                                onClick={async () => {
+                                    await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon, isInArchive: false });
+                                    window.location.reload();
+                                }}
+                                variant="outline"
+                            >
+                                Вернуть
                             </Button>
                         }
                     </Group>

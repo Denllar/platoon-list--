@@ -5,7 +5,13 @@ export default function useGetPlatoons({setPlatoons}) {
         setPlatoons(data);
     }
 
+    const getArchivePlatoons = async () => {
+        const {data} = await window.electronAPI.getAllPlatoons();
+        setPlatoons(data);
+    }
+
     return {
         getPlatoons,
+        getArchivePlatoons
     }
 }

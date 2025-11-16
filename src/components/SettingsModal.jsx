@@ -2,6 +2,7 @@ import { Dialog, Button, Group, Input, Modal, Select, Stack, Text, CloseButton }
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
 import { FaTrash } from "react-icons/fa"
+import { FaArrowUp } from "react-icons/fa";
 import useDeleteAllPlatoons from "../hooks/useDeleteAllPlatoons";
 import { useNavigate } from "react-router-dom";
 
@@ -18,12 +19,12 @@ export default function SettingsModal({
     const [openedConfirmDeleteModal, confirmDeleteModal] = useDisclosure(false);
 
     const { deleteAllPlatoon } = useDeleteAllPlatoons();
-    
+
     const confirmDeleteData = async () => {
         if (deleteInput == quantityPlatoons) {
             await deleteAllPlatoon();
-            window.location.reload();
             navigate('/')
+            window.location.reload();
         } else {
             setDeleteError('Неверно введёно кол-во взводов. Удаление данных отменено.');
         }
@@ -44,14 +45,19 @@ export default function SettingsModal({
                         <Text>Удалить все взвода и студентов в них</Text>
                         <Button
                             onClick={confirmDeleteModal.open}
-                            disabled={quantityPlatoons===0}
+                            disabled={quantityPlatoons === 0}
                         >
                             <FaTrash />
                         </Button>
                     </Group>
 
-                    <Group grow>
-
+                    <Group justify="space-between">
+                        <Text>Перевести взвода и студентов на следующий год</Text>
+                        <Button
+                            onClick={confirmDeleteModal.open}
+                        >
+                            <FaArrowUp />
+                        </Button>
                     </Group>
                 </Stack>
             </Modal>

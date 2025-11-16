@@ -26,7 +26,7 @@ export default function Home() {
                     style={{ height: "100%" }}
                     minSize={10}
                     maxSize={30}
-                    defaultSize={15}
+                    defaultSize={20}
                     order={1}
                 >
                     <PlatoonList />

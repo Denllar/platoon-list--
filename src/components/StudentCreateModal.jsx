@@ -38,6 +38,7 @@ export default function StudentCreateModal({
             fio,
             fieldOfStudy,
             status,
+            isInArchive: false,
         }
         const { data } = await addStudent(studentObject);
         setStudents(prev => [...prev, data])

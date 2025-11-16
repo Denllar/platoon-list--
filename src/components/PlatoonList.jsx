@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { MdModeEdit } from "react-icons/md";
 import { CiViewTable } from "react-icons/ci";
 import { CiSettings } from "react-icons/ci";
+import { FaBoxArchive } from "react-icons/fa6";
 import PlatoonAddModal from "./PlatoonCreateModal";
 import { TYPE_PLATOONS } from "../consts";
 import useGetPlatoons from "../hooks/useGetPlatoons";
@@ -20,6 +21,7 @@ export default function PlatoonList() {
     const [students, setStudents] = useState([]);
     const [value, setValue] = useState('');
     const [editPlatoon, setEditPlatoon] = useState({});
+    const [showOnlyArchive, setShowOnlyArchive] = useState(false);
 
     const [openedModal, modal] = useDisclosure(false);
     const [openedModalSettings, modalSettings] = useDisclosure(false);
@@ -36,18 +38,23 @@ export default function PlatoonList() {
     return (
         <Stack align="center" p={'xs'}>
             <Stack gap={0}>
-                <Text fw={700} mb={'md'}>Контингент обучающихся</Text>
+                <Text fw={700} size="xl" mb={'md'}>Контингент обучающихся</Text>
                 <Group
                     justify="space-between"
+                    mb={'md'}
+                    grow
                 >
-                    <Button variant="outline" px={'xs'} py={0} onClick={modal.open}>
-                        +
-                    </Button>
                     <Button
                         variant="outline"
                         onClick={drawer.open}
                     >
                         <CiViewTable />
+                    </Button>
+                    <Button
+                        variant={showOnlyArchive ? "filled" : "outline"}
+                        onClick={() => setShowOnlyArchive((prev) => !prev)}
+                    >
+                        <FaBoxArchive />
                     </Button>
                     <Button
                         variant="outline"
@@ -57,20 +64,28 @@ export default function PlatoonList() {
                     </Button>
                 </Group>
 
-                <Input
+                <Group 
+                    align="center"
                     mb={'xl'}
-                    placeholder="Поиск..."
-                    value={value}
-                    onChange={(event) => setValue(event.currentTarget.value)}
-                    rightSectionPointerEvents="all"
-                    mt="md"
-                    rightSection={
-                        <CloseButton
-                            onClick={() => setValue('')}
-                            style={{ display: value ? undefined : 'none' }}
-                        />
-                    }
-                />
+                >
+                    <Input
+                        placeholder="Поиск..."
+                        value={value}
+                        onChange={(event) => setValue(event.currentTarget.value)}
+                        rightSectionPointerEvents="all"
+                        rightSection={
+                            <CloseButton
+                                onClick={() => setValue('')}
+                                style={{ display: value ? undefined : 'none' }}
+                            />
+                        }
+                    />
+                    <Button variant="outline" onClick={modal.open}>
+                        +
+                    </Button>
+                </Group>
+
+                {showOnlyArchive && <Text fw={700} size="40px" mb={'xl'}>Архив</Text>}
 
                 {value && <Text fw={700} size="xl" mb={'xl'}>Поиск по: {value}</Text>}
 
@@ -82,6 +97,7 @@ export default function PlatoonList() {
                         const platoonsOfType = platoons
                             .filter((platoon) => platoon.type === type)
                             .filter((platoon) => platoon.number.toString().includes(value))
+                            .filter((platoon) => showOnlyArchive ? platoon.isInArchive === true : !platoon.isInArchive)
                             .sort((a, b) => a.number - b.number);
                         if (platoonsOfType.length === 0) return null;
                         return (
@@ -128,6 +144,7 @@ export default function PlatoonList() {
                 setPlatoons={setPlatoons}
                 editPlatoon={editPlatoon}
                 setEditPlatoon={setEditPlatoon}
+                showOnlyArchive={showOnlyArchive}
             />
 
             <SettingsModal

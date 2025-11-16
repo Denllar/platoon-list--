@@ -206,7 +206,8 @@ export default function useImportPlatoonsWord() {
                     const newPlatoon = { 
                         id: platoonId, 
                         number, 
-                        type: block.type
+                        type: block.type,
+                        isInArchive: false,
                     };
                     
                     const platoonRes = await createPlatoon(newPlatoon);
@@ -293,7 +294,8 @@ export default function useImportPlatoonsWord() {
                         platoonId: usedPlatoonId,
                         fio: studentData.fio,
                         fieldOfStudy: studentData.fieldOfStudy,
-                        status: studentData.status
+                        status: studentData.status,
+                        isInArchive: false,
                     };
                     
                     const studentRes = await addStudent(newStudent);
