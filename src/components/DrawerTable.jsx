@@ -15,6 +15,8 @@ const courseAndSpec = (num) => {
 
 /* ---------- build data ---------- */
 function buildTables(platoons, students) {
+    // Исключаем архивные взвода
+    platoons = platoons.filter((p) => !p.isInArchive);
     const base = {};
     platoons.forEach((p) => {
         const { course, spec } = courseAndSpec(p.number);
@@ -128,7 +130,7 @@ export default function DrawerTable({ openedDrawer, drawer, platoons=[], student
                                         <th style={tableStyles.th}>Курс</th>
                                         <th style={tableStyles.th}>Взвод</th>
                                         <th style={tableStyles.th}>Кол-во</th>
-                                        <th style={tableStyles.th}>Итого по спец.</th>
+                                        <th style={tableStyles.th}>Итого</th>
                                         <th style={tableStyles.th}>Всего по курсу</th>
                                     </tr>
                                 </thead>

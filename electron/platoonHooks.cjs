@@ -82,15 +82,13 @@ function deletePlatoon(id) {
         const filteredData = allData.filter(item => String(item.id) !== String(id));
         fs.writeFileSync(dataFilePath, JSON.stringify(filteredData, null, 2));
 
-        // === Удаление студентов этого взвода ===
-        //const studentsFilePath = path.join(__dirname, '../db/students.json');
         if (fs.existsSync(studentsFilePath)) {
             const studentsContent = fs.readFileSync(studentsFilePath, 'utf8');
             const students = JSON.parse(studentsContent);
             const filteredStudents = students.filter(student => String(student.platoonId) !== String(id));
             fs.writeFileSync(studentsFilePath, JSON.stringify(filteredStudents, null, 2));
         }
-        // === END ===
+
         return true;
     } catch (error) {
         console.error('Ошибка при удалении данных:', error);
@@ -126,6 +124,58 @@ function deleteAllPlatoons() {
     }
 }
 
+// Удаление всех архивных взводов и их студентов
+function deleteAllArchivedPlatoons() {
+    try {
+        const { data: allPlatoons } = getAllPlatoons();
+        
+        // Получаем ID архивных взводов
+        const archivedIds = allPlatoons
+            .filter(platoon => platoon.isInArchive === true)
+            .map(platoon => String(platoon.id));
+
+        // Если нет архивных взводов - возвращаем сообщение
+        if (archivedIds.length === 0) {
+            return {
+                success: true,
+                message: 'Нет архивных взводов для удаления'
+            };
+        }
+
+        // Фильтруем взводы, оставляя только неархивные
+        const activePlatoons = allPlatoons.filter(platoon => !platoon.isInArchive);
+        fs.writeFileSync(dataFilePath, JSON.stringify(activePlatoons, null, 2));
+
+        // Удаляем студентов архивных взводов
+        let deletedStudentsCount = 0;
+        if (fs.existsSync(studentsFilePath)) {
+            const studentsContent = fs.readFileSync(studentsFilePath, 'utf8');
+            const students = JSON.parse(studentsContent);
+            const initialLength = students.length;
+            
+            const activeStudents = students.filter(student => 
+                !archivedIds.includes(String(student.platoonId))
+            );
+            
+            deletedStudentsCount = initialLength - activeStudents.length;
+            fs.writeFileSync(studentsFilePath, JSON.stringify(activeStudents, null, 2));
+        }
+
+        return {
+            success: true,
+            message: `Удалено взводов: ${archivedIds.length}, студентов: ${deletedStudentsCount}`,
+            deletedPlatoons: archivedIds.length,
+            deletedStudents: deletedStudentsCount
+        };
+    } catch (error) {
+        console.error('Ошибка при удалении архивных взводов:', error);
+        return {
+            success: false,
+            error: `Ошибка при удалении архивных взводов: ${error.message}`
+        };
+    }
+}
+
 module.exports = {
     getAllPlatoons,
     getPlatoonById,
@@ -133,4 +183,5 @@ module.exports = {
     updatePlatoon,
     deletePlatoon,
     deleteAllPlatoons,
+    deleteAllArchivedPlatoons
 };

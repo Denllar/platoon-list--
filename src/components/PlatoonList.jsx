@@ -12,6 +12,7 @@ import useGetPlatoons from "../hooks/useGetPlatoons";
 import DrawerTable from "./DrawerTable";
 import useGetStudents from "../hooks/useGetStudents";
 import SettingsModal from "./SettingsModal";
+import useDeleteAllArchivePlatoons from "../hooks/useDeleteAllArchivePlatoons";
 
 export default function PlatoonList() {
     const { id } = useParams();
@@ -29,6 +30,14 @@ export default function PlatoonList() {
 
     const { getPlatoons } = useGetPlatoons({ setPlatoons });
     const { getStudents } = useGetStudents({ setStudents });
+    const { deleteAllArchivePlatoon } = useDeleteAllArchivePlatoons();
+
+    const clearArchivedPlatoons = async () => {
+        if (confirm("Вы уверены, что хотите очистить архив?")) {
+            await deleteAllArchivePlatoon();
+            window.location.reload();
+        }
+    }
 
     useEffect(() => {
         getPlatoons();
@@ -45,16 +54,16 @@ export default function PlatoonList() {
                     grow
                 >
                     <Button
-                        variant="outline"
-                        onClick={drawer.open}
-                    >
-                        <CiViewTable />
-                    </Button>
-                    <Button
                         variant={showOnlyArchive ? "filled" : "outline"}
                         onClick={() => setShowOnlyArchive((prev) => !prev)}
                     >
                         <FaBoxArchive />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={drawer.open}
+                    >
+                        <CiViewTable />
                     </Button>
                     <Button
                         variant="outline"
@@ -64,7 +73,7 @@ export default function PlatoonList() {
                     </Button>
                 </Group>
 
-                <Group 
+                <Group
                     align="center"
                     mb={'xl'}
                 >
@@ -85,7 +94,17 @@ export default function PlatoonList() {
                     </Button>
                 </Group>
 
-                {showOnlyArchive && <Text fw={700} size="40px" mb={'xl'}>Архив</Text>}
+                {showOnlyArchive &&
+                    <Group mb={'xl'}>
+                        <Text fw={700} size="40px">Архив</Text>
+                        <Button
+                            onClick={clearArchivedPlatoons}
+                            color={showOnlyArchive && 'orange'}
+                        >
+                            Очистить архив
+                        </Button>
+                    </Group>
+                }
 
                 {value && <Text fw={700} size="xl" mb={'xl'}>Поиск по: {value}</Text>}
 
@@ -109,7 +128,7 @@ export default function PlatoonList() {
                                             flex={1}
                                             onClick={() => navigate(`${platoon.id}`)}
                                             disabled={platoon.id === id}
-
+                                            color={showOnlyArchive && 'orange'}
                                         >
                                             {platoon.number}
                                         </Button>
@@ -120,6 +139,7 @@ export default function PlatoonList() {
                                                     setEditPlatoon(platoon);
                                                     modal.open();
                                                 }}
+                                                color={showOnlyArchive && 'orange'}
                                             >
                                                 <MdModeEdit />
                                             </Button>

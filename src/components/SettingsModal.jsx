@@ -5,6 +5,7 @@ import { FaTrash } from "react-icons/fa"
 import { FaArrowUp } from "react-icons/fa";
 import useDeleteAllPlatoons from "../hooks/useDeleteAllPlatoons";
 import { useNavigate } from "react-router-dom";
+import useTransferToTheNextYear from "../hooks/useTransferToTheNextYear";
 
 export default function SettingsModal({
     opened,
@@ -15,10 +16,13 @@ export default function SettingsModal({
 
     const [deleteInput, setDeleteInput] = useState("");
     const [deleteError, setDeleteError] = useState("");
+    const [transferError, setTransferError] = useState("");
+    const [transferLoading, setTransferLoading] = useState(false);
     //const [openedDialog, { toggle: openDialog, close: closeDialog }] = useDisclosure(false);
     const [openedConfirmDeleteModal, confirmDeleteModal] = useDisclosure(false);
 
     const { deleteAllPlatoon } = useDeleteAllPlatoons();
+    const { transferToTheNextYear } = useTransferToTheNextYear();
 
     const confirmDeleteData = async () => {
         if (deleteInput == quantityPlatoons) {
@@ -27,6 +31,28 @@ export default function SettingsModal({
             window.location.reload();
         } else {
             setDeleteError('Неверно введёно кол-во взводов. Удаление данных отменено.');
+        }
+    }
+
+    const handleTransfer = async () => {
+        setTransferLoading(true);
+        setTransferError("");
+
+        try {
+            const result = await transferToTheNextYear();
+
+            if (result.success) {
+                // Показываем успешное сообщение и перезагружаем данные
+                alert(result.message || 'Перевод на следующий год выполнен успешно!');
+                navigate('/');
+                window.location.reload(); // Перезагружаем страницу для обновления данных
+            } else {
+                setTransferError(result.error || 'Произошла неизвестная ошибка');
+            }
+        } catch (error) {
+            setTransferError(`Ошибка: ${error.message}`);
+        } finally {
+            setTransferLoading(false);
         }
     }
 
@@ -42,7 +68,7 @@ export default function SettingsModal({
             >
                 <Stack>
                     <Group justify="space-between">
-                        <Text>Удалить все взвода и студентов в них</Text>
+                        <Text>Полностью удалить взвода и очистить архив</Text>
                         <Button
                             onClick={confirmDeleteModal.open}
                             disabled={quantityPlatoons === 0}
@@ -54,11 +80,18 @@ export default function SettingsModal({
                     <Group justify="space-between">
                         <Text>Перевести взвода и студентов на следующий год</Text>
                         <Button
-                            onClick={confirmDeleteModal.open}
+                            onClick={handleTransfer}
+                            disabled={transferLoading || quantityPlatoons === 0}
                         >
                             <FaArrowUp />
                         </Button>
                     </Group>
+
+                    {transferError && (
+                        <Text c="red" size="sm">
+                            Ошибка перевода: {transferError}
+                        </Text>
+                    )}
                 </Stack>
             </Modal>
 

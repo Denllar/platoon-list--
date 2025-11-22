@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     updatePlatoon: (id, data) => ipcRenderer.invoke('update-platoon', id, data),
     deletePlatoon: (id) => ipcRenderer.invoke('delete-platoon', id),
     deleteAllPlatoons: () => ipcRenderer.invoke('delete-all-platoons'),
+    deleteAllArchivedPlatoons: () => ipcRenderer.invoke('delete-all-archived-platoons'),
 
     getAllStudents: (platoonId) => ipcRenderer.invoke('get-all-students', platoonId),
     getStudentById: (id) => ipcRenderer.invoke('get-student-by-id', id),

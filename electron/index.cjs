@@ -8,7 +8,8 @@ const {
   addPlatoon,
   updatePlatoon,
   deletePlatoon,
-  deleteAllPlatoons } = require('./platoonHooks.cjs');
+  deleteAllPlatoons,
+  deleteAllArchivedPlatoons } = require('./platoonHooks.cjs');
 
 const {
   getAllStudents,
@@ -96,6 +97,11 @@ ipcMain.handle('delete-platoon', async (event, id) => {
 ipcMain.handle('delete-all-platoons', async (event, id) => {
   return deleteAllPlatoons();
 });
+
+ipcMain.handle('delete-all-archived-platoons', async (event, id) => {
+  return deleteAllArchivedPlatoons();
+});
+
 
 // Студент
 ipcMain.handle('get-all-students', async (event, platoonId) => {
