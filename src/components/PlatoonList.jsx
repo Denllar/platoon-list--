@@ -109,7 +109,7 @@ export default function PlatoonList() {
                 {value && <Text fw={700} size="xl" mb={'xl'}>Поиск по: {value}</Text>}
 
                 <ScrollArea.Autosize
-                    mah="calc(100vh - 150px)"
+                    mah="calc(90vh - 150px)"
                     type={"never"}
                 >
                     {TYPE_PLATOONS.map((type) => {

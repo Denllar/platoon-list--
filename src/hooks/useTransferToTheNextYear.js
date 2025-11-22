@@ -1,11 +1,9 @@
 import useUpdatePlatoon from "./useUpdatePlatoon";
 import useUpdateStudent from "./useUpdateStudent";
-import useDeletePlatoon from "./useDeletePlatoon";
 
 export default function useTransferToTheNextYear() {
     const { updatePlatoon } = useUpdatePlatoon();
     const { updateStudent } = useUpdateStudent();
-    const { deletePlatoon } = useDeletePlatoon();
 
     // Вспомогательная функция для обновления fieldOfStudy
     const updateStudentFieldOfStudy = (fieldOfStudy) => {
@@ -18,13 +16,8 @@ export default function useTransferToTheNextYear() {
         const afterDash = fieldOfStudy.substring(lastDashIndex + 1);
 
         // Ищем первую цифру после тире
-        const match = afterDash.match(/^(\d+)/);
-        if (!match) return fieldOfStudy;
-
-        const numbers = match[1];
-        const newNumbers = String(parseInt(numbers) + 1);
-
-        return beforeDash + afterDash.replace(/^\d+/, newNumbers);
+        const updated = afterDash.replace(/^(\d)/, (d) => String(+d + 1));
+        return beforeDash + updated;
     };
 
     const transferToTheNextYear = async () => {
