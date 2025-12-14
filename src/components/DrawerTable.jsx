@@ -49,27 +49,48 @@ function buildTables(platoons, students) {
             const specMap = courseMap[cr];
             const specs = Object.keys(specMap).sort((a, b) => a - b);
             let courseTotal = 0;
+            let courseRowsStart = rows.length;
 
+            // Суммируем "всего по курсу"
             specs.forEach((sp) => {
                 courseTotal += specMap[sp].totalSpec;
             });
 
-            specs.forEach((sp, specIdx) => {
+            // Для построения строк по специальностям
+            specs.forEach((sp) => {
                 const { totalSpec, platoons } = specMap[sp];
-                platoons.forEach((p, platIdx) => {
-                    const isFirstCourseRow = specIdx === 0 && platIdx === 0;
-                    const isFirstSpecRow = platIdx === 0;
+                let specRowsStart = rows.length;
+                platoons.forEach((p) => {
                     rows.push({
-                        course: isFirstCourseRow ? cr : '',
+                        course: '', // потом заполним
                         platoonNumber: p.number,
                         qty: p.qty,
-                        specTotal: isFirstSpecRow ? totalSpec : '',
-                        courseTotal: isFirstCourseRow ? courseTotal : '',
-                        isLastInSpec: platIdx === platoons.length - 1,
-                        isLastInCourse: platIdx === platoons.length - 1 && specIdx === specs.length - 1,
+                        specTotal: '', // потом заполним
+                        courseTotal: '', // потом заполним
+                        isLastInSpec: false, // потом заполним
+                        isLastInCourse: false, // потом заполним
                     });
                 });
+                // Устанавливаем центр строки для спец. Итого
+                const specLen = platoons.length;
+                if (specLen > 0) {
+                    const centerIdx = specRowsStart + Math.floor(specLen / 2);
+                    rows[centerIdx].specTotal = totalSpec;
+                }
+                // Помечаем последнюю строку спец
+                if (specLen > 0) {
+                    rows[specRowsStart + specLen - 1].isLastInSpec = true;
+                }
             });
+            // Для всего по курсу/курса
+            const allRowsInCourse = rows.slice(courseRowsStart, rows.length);
+            const len = allRowsInCourse.length;
+            if (len > 0) {
+                const centerIdx = courseRowsStart + Math.floor(len / 2);
+                rows[centerIdx].course = cr;
+                rows[centerIdx].courseTotal = courseTotal;
+                rows[courseRowsStart + len - 1].isLastInCourse = true;
+            }
             grandTotal += courseTotal;
         });
 
