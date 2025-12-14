@@ -54,12 +54,6 @@ export default function PlatoonList() {
                     grow
                 >
                     <Button
-                        variant={showOnlyArchive ? "filled" : "outline"}
-                        onClick={() => setShowOnlyArchive((prev) => !prev)}
-                    >
-                        <FaBoxArchive />
-                    </Button>
-                    <Button
                         variant="outline"
                         onClick={drawer.open}
                     >
@@ -70,6 +64,12 @@ export default function PlatoonList() {
                         onClick={modalSettings.open}
                     >
                         <CiSettings />
+                    </Button>
+                    <Button
+                        variant={showOnlyArchive ? "filled" : "outline"}
+                        onClick={() => setShowOnlyArchive((prev) => !prev)}
+                    >
+                        <FaBoxArchive />
                     </Button>
                 </Group>
 

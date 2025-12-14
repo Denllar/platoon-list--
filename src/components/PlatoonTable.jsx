@@ -102,6 +102,7 @@ export default function PlatoonTable() {
                 <Stack c={'white'} gap={0}>
                     <Text fw={700}>{data?.type}</Text>
                     <Text fw={700}>Взвод {data?.number}</Text>
+                    {data?.transferedAt && <Text fw={700}>Дата перевода: {data?.transferedAt ? new Date(data.transferedAt).toLocaleDateString() : ''}</Text>}
                 </Stack>
 
                 <Input

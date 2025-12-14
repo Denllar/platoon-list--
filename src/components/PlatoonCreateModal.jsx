@@ -70,7 +70,7 @@ export default function PlatoonCreateModal({
 
     const confirmDeletePlatoon = async () => {
         if (deleteInput === String(editPlatoon.number)) {
-            await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon, isInArchive: true });
+            await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon, isInArchive: true, transferedAt: null });
             setPlatoons(prevPlatoons => prevPlatoons.filter(platoon => platoon.id !== editPlatoon.id))
             setShowDeleteModal(false);
             onCloseModal();

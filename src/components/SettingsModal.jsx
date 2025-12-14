@@ -22,7 +22,7 @@ export default function SettingsModal({
     const [openedConfirmDeleteModal, confirmDeleteModal] = useDisclosure(false);
 
     const { deleteAllPlatoon } = useDeleteAllPlatoons();
-    const { transferToTheNextYear } = useTransferToTheNextYear();
+    const { transferToTheNextYear, transferToPrevYear } = useTransferToTheNextYear();
 
     const confirmDeleteData = async () => {
         if (deleteInput == quantityPlatoons) {
@@ -34,7 +34,7 @@ export default function SettingsModal({
         }
     }
 
-    const handleTransfer = async () => {
+    const handleTransferToNextYear = async () => {
         setTransferLoading(true);
         setTransferError("");
 
@@ -44,6 +44,28 @@ export default function SettingsModal({
             if (result.success) {
                 // Показываем успешное сообщение и перезагружаем данные
                 alert(result.message || 'Перевод на следующий год выполнен успешно!');
+                navigate('/');
+                window.location.reload(); // Перезагружаем страницу для обновления данных
+            } else {
+                setTransferError(result.error || 'Произошла неизвестная ошибка');
+            }
+        } catch (error) {
+            setTransferError(`Ошибка: ${error.message}`);
+        } finally {
+            setTransferLoading(false);
+        }
+    }
+
+    const handleTransferToPrevYear = async () => {
+        setTransferLoading(true);
+        setTransferError("");
+
+        try {
+            const result = await transferToPrevYear();
+
+            if (result.success) {
+                // Показываем успешное сообщение и перезагружаем данные
+                alert(result.message || 'Перевод на прошлый год выполнен успешно!');
                 navigate('/');
                 window.location.reload(); // Перезагружаем страницу для обновления данных
             } else {
@@ -71,19 +93,29 @@ export default function SettingsModal({
                         <Text>Полностью удалить взвода и очистить архив</Text>
                         <Button
                             onClick={confirmDeleteModal.open}
-                            disabled={quantityPlatoons === 0}
+                            disabled={transferLoading || quantityPlatoons === 0}
                         >
                             <FaTrash />
                         </Button>
                     </Group>
 
                     <Group justify="space-between">
-                        <Text>Перевести взвода и студентов на следующий год</Text>
+                        <Text>Перевести взвода и студентов на СЛЕДУЮЩИЙ год</Text>
                         <Button
-                            onClick={handleTransfer}
+                            onClick={handleTransferToNextYear}
                             disabled={transferLoading || quantityPlatoons === 0}
                         >
-                            <FaArrowUp />
+                            Перевести на следующий год
+                        </Button>
+                    </Group>
+
+                    <Group justify="space-between">
+                        <Text>Перевести взвода и студентов на ПРОШЛЫЙ год</Text>
+                        <Button
+                            onClick={handleTransferToPrevYear}
+                            disabled={transferLoading || quantityPlatoons === 0}
+                        >
+                            Перевести на прошлый год
                         </Button>
                     </Group>
 

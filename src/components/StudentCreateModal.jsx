@@ -50,6 +50,7 @@ export default function StudentCreateModal({
         const { data } = await updateStudent(editStudent.id, { fio, fieldOfStudy, status });
         setStudents(prevStudents => prevStudents.map(student => student.id === editStudent.id ? { ...student, ...data } : student))
         onCloseModal();
+        window.location.reload();
     }
 
     const handleDeleteStudent = async () => {
