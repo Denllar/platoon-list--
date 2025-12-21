@@ -36,6 +36,14 @@ const columns = [
         resizable: false,
     },
     {
+        field: 'juniorCommander',
+        headerName: 'Мл. командиры',
+        headerAlign: 'center',
+        align: 'center',
+        flex: 0.25,
+        resizable: false,
+    },
+    {
         field: 'fieldOfStudy',
         headerName: 'Уч. группа',
         type: 'number',
@@ -151,6 +159,7 @@ export default function PlatoonTable() {
             {search && <Text c={'white'} fw={700} size="xl">Поиск по: {search}</Text>}
             {/* {importStatus && <Text c="yellow" fw={700}>{importStatus}</Text>} */}
 
+            <Text c={'white'} fw={700}>{data?.oficer}</Text>
             <ScrollArea.Autosize>
                 <DataGrid
                     rows={filteredStudents}

@@ -133,11 +133,17 @@ export default function useImportPlatoonsWord() {
             let currentTitle = null;
             let debugLog = [];
             let currentPlatoonType = 'Кадровые офицеры';
+            let officerBuffer = [];
             
             nodes.forEach(node => {
                 if (node.nodeType === 1) {
                     const text = node.textContent.trim();
-                    
+
+                    // накапливаем офицера между взводом и таблицей
+                    if (currentTitle && node.tagName !== 'TABLE' && text) {
+                        officerBuffer.push(text);
+                    }
+
                     if (text) {
                         if (/кадров|офицер.*кадр/i.test(text)) {
                             currentPlatoonType = 'Кадровые офицеры';
@@ -160,7 +166,15 @@ export default function useImportPlatoonsWord() {
                 if (node.tagName === 'TABLE' && currentTitle) {
                     const { number } = extractPlatoonInfo(currentTitle);
                     let finalType = currentPlatoonType;
-                    
+
+                    // соберём большой текст между названием и таблицей
+                    // ищем там "ответственный офицер"
+                    const fullOfficerText = officerBuffer.join('\n').trim();
+                    const officerBlock = fullOfficerText.match(/ответственный офицер[\s\S]*/i)
+                        ? fullOfficerText.match(/ответственный офицер[\s\S]*/i)[0].trim() : '';
+
+                    officerBuffer = [];
+
                     if (number && /[а-яa-z]$/i.test(number) && currentPlatoonType !== 'Солдаты запаса') {
                         finalType = 'Солдаты запаса';
                         debugLog.push(`Принудительно установлен тип "Солдаты запаса" для взвода ${number}`);
@@ -169,9 +183,10 @@ export default function useImportPlatoonsWord() {
                     platoonBlocks.push({ 
                         title: currentTitle, 
                         table: node,
-                        type: finalType
+                        type: finalType,
+                        oficer: officerBlock
                     });
-                    debugLog.push(`Добавлена таблица для взвода: ${currentTitle}, тип: ${finalType}`);
+                    debugLog.push(`Добавлена таблица для взвода: ${currentTitle}, тип: ${finalType}, офицер: ${officerBlock}`);
                     currentTitle = null;
                 }
             });
@@ -207,6 +222,7 @@ export default function useImportPlatoonsWord() {
                         id: platoonId, 
                         number, 
                         type: block.type,
+                        oficer: block.oficer || '',
                         isInArchive: false,
                     };
                     
@@ -237,6 +253,7 @@ export default function useImportPlatoonsWord() {
                 
                 const fioIndex = headers.findIndex(h => /фио|ф\.и\.о/i.test(h));
                 const groupIndex = headers.findIndex(h => /учебн.*групп|групп/i.test(h));
+                const commanderIndex = headers.findIndex(h => /младш.*командир/i.test(h));
                 
                 if (fioIndex === -1) {
                     debugLog.push(`Не найдена колонка ФИО в таблице взвода ${number}`);
@@ -274,7 +291,9 @@ export default function useImportPlatoonsWord() {
                         fio: fioText,
                         fieldOfStudy: groupIndex !== -1 && cells[groupIndex] ? 
                             cells[groupIndex].textContent.trim() : '',
-                        status: isColoredRow ? 'Отстранён' : 'Зачислен'
+                        status: isColoredRow ? 'Отстранён' : 'Зачислен',
+                        juniorCommander: commanderIndex !== -1 && cells[commanderIndex] ?
+                            cells[commanderIndex].textContent.trim() : '',
                     };
                     
                     const existingStudent = students.find(
@@ -295,6 +314,7 @@ export default function useImportPlatoonsWord() {
                         fio: studentData.fio,
                         fieldOfStudy: studentData.fieldOfStudy,
                         status: studentData.status,
+                        juniorCommander: studentData.juniorCommander,
                         isInArchive: false,
                     };
                     
