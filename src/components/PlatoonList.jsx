@@ -115,7 +115,14 @@ export default function PlatoonList() {
                     {TYPE_PLATOONS.map((type) => {
                         const platoonsOfType = platoons
                             .filter((platoon) => platoon.type === type)
-                            .filter((platoon) => platoon.number.toString().includes(value))
+                            .filter((platoon) => {
+                                const lowerValue = value.toLowerCase();
+                                const numberMatch = platoon.number.toString().includes(value);
+                                const officerMatch = platoon.officer?.toLowerCase().includes(lowerValue);
+                                const studentsOfPlatoon = students.filter(s => s.platoonId === platoon.id);
+                                const studentMatch = studentsOfPlatoon.some(s => s.fio.toLowerCase().includes(lowerValue));
+                                return numberMatch || officerMatch || studentMatch;
+                            })
                             .filter((platoon) => showOnlyArchive ? platoon.isInArchive === true : !platoon.isInArchive)
                             .sort((a, b) => a.number - b.number);
                         if (platoonsOfType.length === 0) return null;
