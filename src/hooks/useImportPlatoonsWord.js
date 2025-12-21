@@ -184,7 +184,7 @@ export default function useImportPlatoonsWord() {
                         title: currentTitle, 
                         table: node,
                         type: finalType,
-                        oficer: officerBlock
+                        officer: officerBlock
                     });
                     debugLog.push(`Добавлена таблица для взвода: ${currentTitle}, тип: ${finalType}, офицер: ${officerBlock}`);
                     currentTitle = null;
@@ -222,7 +222,7 @@ export default function useImportPlatoonsWord() {
                         id: platoonId, 
                         number, 
                         type: block.type,
-                        oficer: block.oficer || '',
+                        officer: block.officer || '',
                         isInArchive: false,
                     };
                     

@@ -20,8 +20,9 @@ export default function PlatoonCreateModal({
     const [openedDialog, { toggle: openDialog, close: closeDialog }] = useDisclosure(false);
     const [typePlatoon, setTypePlatoon] = useState(editPlatoon.type || "");
     const [numberPlatoon, setNumberPlatoon] = useState(editPlatoon.number || "");
-    const disabledButtonAdd = !typePlatoon || !numberPlatoon;
-    const editButtonDisabled = disabledButtonAdd || (typePlatoon === editPlatoon.type && numberPlatoon === editPlatoon.number);
+    const [officerPlatoon, setOfficerPlatoon] = useState(editPlatoon.officer || "");
+    const disabledButtonAdd = !typePlatoon || !numberPlatoon || !officerPlatoon;
+    const editButtonDisabled = disabledButtonAdd || (typePlatoon === editPlatoon.type && numberPlatoon === editPlatoon.number && officerPlatoon === editPlatoon.officer);
 
     const { createPlatoon } = useAddPlatoon();
     const { updatePlatoon } = useUpdatePlatoon();
@@ -34,6 +35,7 @@ export default function PlatoonCreateModal({
     const onCloseModal = () => {
         setTypePlatoon("");
         setNumberPlatoon("");
+        setOfficerPlatoon("");
         setEditPlatoon({});
         close();
     }
@@ -43,6 +45,7 @@ export default function PlatoonCreateModal({
             id: Date.now().toString(),
             type: typePlatoon,
             number: numberPlatoon,
+            officer: officerPlatoon,
             isInArchive: false,
         }
         const { data, error: addError } = await createPlatoon(platoonObject);
@@ -56,7 +59,7 @@ export default function PlatoonCreateModal({
     }
 
     const handleEditPlatoon = async () => {
-        const { data } = await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon });
+        const { data } = await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon, officer: officerPlatoon });
         //setPlatoons(prevPlatoons => prevPlatoons.map(platoon => platoon.id === editPlatoon.id ? { ...platoon, ...data } : platoon))
         onCloseModal();
         window.location.reload()
@@ -70,7 +73,7 @@ export default function PlatoonCreateModal({
 
     const confirmDeletePlatoon = async () => {
         if (deleteInput === String(editPlatoon.number)) {
-            await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon, isInArchive: true, transferedAt: null });
+            await updatePlatoon(editPlatoon.id, { type: typePlatoon, number: numberPlatoon, officer: officerPlatoon, isInArchive: true, transferedAt: null });
             setPlatoons(prevPlatoons => prevPlatoons.filter(platoon => platoon.id !== editPlatoon.id))
             setShowDeleteModal(false);
             onCloseModal();
@@ -89,6 +92,7 @@ export default function PlatoonCreateModal({
     useEffect(() => {
         setTypePlatoon(editPlatoon?.type || "");
         setNumberPlatoon(editPlatoon?.number || "");
+        setOfficerPlatoon(editPlatoon?.officer || "");
     }, [editPlatoon]);
 
     return (
@@ -123,6 +127,18 @@ export default function PlatoonCreateModal({
                             }
                         />
                     </Group>
+                    <Input
+                        placeholder="Ответственный офицер"
+                        value={officerPlatoon}
+                        onChange={(e) => setOfficerPlatoon(e.target.value)}
+                        rightSectionPointerEvents="all"
+                        rightSection={
+                            <CloseButton
+                                onClick={() => setOfficerPlatoon("")}
+                                style={{ display: officerPlatoon ? undefined : 'none' }}
+                            />
+                        }
+                    />
 
                     <Group grow>
                         {

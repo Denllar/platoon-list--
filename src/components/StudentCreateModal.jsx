@@ -14,6 +14,7 @@ export default function StudentCreateModal({
     setEditStudent,
 }) {
     const [fio, setFio] = useState(editStudent?.fio || '');
+    const [juniorCommander, setJuniorCommander] = useState(editStudent?.juniorCommander || '');
     const [fieldOfStudy, setFieldOfStudy] = useState(editStudent?.fieldOfStudy || '');
     const [status, setStatus] = useState(editStudent?.status || STATUS_STUDENT[0]);
 
@@ -21,11 +22,12 @@ export default function StudentCreateModal({
     const { updateStudent } = useUpdateStudent();
     const { deleteStudent } = useDeleteStudent();
 
-    const disabledButtonAdd = !fio || !fieldOfStudy || !status;
-    const editButtonDisabled = disabledButtonAdd || (fio === editStudent.fio && fieldOfStudy === editStudent.fieldOfStudy && status === editStudent.status);
+    const disabledButtonAdd = !fio || !fieldOfStudy || !status || !juniorCommander;
+    const editButtonDisabled = disabledButtonAdd || (fio === editStudent.fio && fieldOfStudy === editStudent.fieldOfStudy && status === editStudent.status && juniorCommander === editStudent.juniorCommander);
 
     const onCloseModal = () => {
         setFio('');
+        setJuniorCommander('');
         setFieldOfStudy('');
         setEditStudent({})
         close();
@@ -36,6 +38,7 @@ export default function StudentCreateModal({
             id: Date.now().toString(),
             platoonId,
             fio,
+            juniorCommander,
             fieldOfStudy,
             status,
             isInArchive: false,
@@ -47,7 +50,7 @@ export default function StudentCreateModal({
     }
 
     const handleEditStudent = async () => {
-        const { data } = await updateStudent(editStudent.id, { fio, fieldOfStudy, status });
+        const { data } = await updateStudent(editStudent.id, { fio, fieldOfStudy, status, juniorCommander });
         setStudents(prevStudents => prevStudents.map(student => student.id === editStudent.id ? { ...student, ...data } : student))
         onCloseModal();
         window.location.reload();
@@ -62,6 +65,7 @@ export default function StudentCreateModal({
 
     useEffect(() => {
         setFio(editStudent?.fio || "");
+        setJuniorCommander(editStudent?.juniorCommander || "");
         setFieldOfStudy(editStudent?.fieldOfStudy || "");
         setStatus(editStudent?.status || STATUS_STUDENT[0]);
     }, [editStudent]);
@@ -71,7 +75,7 @@ export default function StudentCreateModal({
             <Modal
                 opened={opened}
                 onClose={onCloseModal}
-                size={'40%'}
+                size={'50%'}
                 title={`${editStudent?.id ? "Изменить" : "Добавить"} студента`}
                 centered
                 closeOnClickOutside={false}
@@ -105,7 +109,18 @@ export default function StudentCreateModal({
                             }
 
                         />
-
+                        <Input
+                            placeholder="Мл. командиры"
+                            value={juniorCommander}
+                            onChange={(e) => setJuniorCommander(e.target.value)}
+                            rightSectionPointerEvents="all"
+                            rightSection={
+                                <CloseButton
+                                    onClick={() => setJuniorCommander("")}
+                                    style={{ display: juniorCommander ? undefined : 'none' }}
+                                />
+                            }
+                        />
                         <Select
                             placeholder="Статус"
                             data={STATUS_STUDENT}
